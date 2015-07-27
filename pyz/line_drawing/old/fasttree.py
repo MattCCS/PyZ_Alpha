@@ -75,7 +75,7 @@ def gen_new(radius, dimensions):
 
 ####################################
 
-def gen_new_all(radii=[8,12,16,24,32,48,64], dimensions=[2]):
+def gen_new_all(radii=[8,12,16,24,32], dimensions=[2]):
     for dim in dimensions:
         for rad in radii:
             print "Generating/saving radius:{} dimensions:{}".format(rad, dim)

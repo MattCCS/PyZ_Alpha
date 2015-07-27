@@ -49,6 +49,9 @@ def random_file_from_dir(path):
 
 ####################################
 
+def stop_all_sounds():
+    os.system("ps ax | grep afplay | awk '{print $1}' | xargs kill")
+
 def _play(path, volume=1.0):
     # print path, volume
     subprocess.Popen(["afplay", path, '--volume', str(volume)])

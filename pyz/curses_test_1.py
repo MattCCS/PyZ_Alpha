@@ -21,10 +21,10 @@ from pyz.vision import coord_gen_utils
 
 PLAY = 1
 
-RADIUS = 24 # doesn't include center
+RADIUS = 16 # doesn't include center
 DIMENSIONS = 2
 X = 80 # X * 2 - 1 == screen width
-Y = 24
+Y = 50
 
 # X = 175
 # Y = 90
@@ -79,9 +79,9 @@ class Node2D:
         self.passable, self.transparent = code
         self.has_player = False
         self.material = 'dirt'
-        self.appearance = Node2D.AIR
-        self.old_color = 7
-        self.color = 7 # default color
+        self.appearance = '.'
+        self.old_color = random.choice([7,7,7,7,7,5])
+        self.color = self.old_color # default color
 
     def reset(self):
         self.unset_has_player()
@@ -102,6 +102,8 @@ class Node2D:
         self.old_color = 6
 
     def set_grass(self):
+        self.passable = True
+        self.transparent = True
         self.appearance = random.choice(",'\"`") # text
         self.material = 'grass'               # sound
         self.color = random.choice([2,3])     # color
@@ -217,18 +219,18 @@ class Grid2D:
 
     def render(self, visible, stdscr):
 
-        SPACING = 1
+        SPACING = 2
+        BORDER_OFFSET_X = 1
+        BORDER_OFFSET_Y = 1
 
         (px,py) = self.player
-
-        iy = self.y
 
         final_x = self.viewx
 
         for row in self.frame_coords_2D():
             sx,sy = row[0]
 
-            final_y = iy - sy - 1
+            final_y = self.y - sy - 1
             if final_y > self.viewy - 1:
                 continue
 
@@ -238,9 +240,10 @@ class Grid2D:
                         break
 
                     if not (x-px, y-py) in visible:
-                        stdscr.addstr(final_y, x*SPACING, Node2D.HIDDEN.encode(CODE))
+                        # stdscr.addstr(final_y+1, x*SPACING+1, Node2D.HIDDEN.encode(CODE))
+                        pass
                     else:
-                        self.nodes[(x,y)].render(stdscr, x*SPACING, final_y)
+                        self.nodes[(x,y)].render(stdscr, x*SPACING+BORDER_OFFSET_X, final_y+BORDER_OFFSET_Y)
 
                     # stdscr.addstr(final_y, x*2+1, ' ')
 
@@ -267,11 +270,10 @@ class Grid2D:
 
         ####################################
         # updating
-        oldx, oldy = -1,-1
+        (oldx, oldy) = self.player
         if key in ARROW_KEYS:
 
             (x,y) = self.player
-            oldx, oldy = x,y
             if key == curses.KEY_UP:
                 y = min(y+1, self.y-1)
             elif key == curses.KEY_DOWN:
@@ -281,7 +283,9 @@ class Grid2D:
             elif key == curses.KEY_RIGHT:
                 x = min(x+1, self.x-1)
 
-            if self.nodes[(x,y)].passable:
+            if (x,y) == self.player:
+                pass
+            elif self.nodes[(x,y)].passable:
                 audio.play_movement(self.player_stand_state, self.player_sneakwalksprint, self.nodes[(x,y)].material)
                 self.player = (x,y)
 
@@ -316,6 +320,7 @@ class Grid2D:
         self.nodes[self.player].set_has_player()
 
         # printsl(self.render(visible)) # TODO !!!
+        stdscr.border()
         self.render(visible, stdscr)
         stdscr.addstr(0, 0, "player: {}".format(self.player))
         stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
@@ -434,16 +439,21 @@ def mainwrapped(stdscr):
 
             # grass
             (cx, cy) = (20, 9)
-            GRID.nodes[(cx,cy)].set_grass()
+            if not (cx,cy) in blocked:
+                GRID.nodes[(cx,cy)].set_grass()
             for x,y in rad7:
-                GRID.nodes[(x+cx, y+cy)].set_grass()
+                if not (x+cx,y+cy) in blocked:
+                    GRID.nodes[(x+cx, y+cy)].set_grass()
 
         try:
             stdscr.addstr(3, 0, "Playing...")
             stdscr.refresh()
+            # audio.play("/Users/Matt/Music/iTunes/iTunes Media/Music/Alt-J/This Is All Yours/05 Left Hand Free.m4a")
             GRID.play(stdscr)
         except Exception as e:
             print e
+
+    audio.stop_all_sounds()
 
     print "\n"*(Y + 10)
 
