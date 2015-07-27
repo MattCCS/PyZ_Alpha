@@ -3,6 +3,12 @@ class Player(object):
 
     def __init__(self):
 
+        self.position = (0,0)
+
+        self.weapon = None
+
+        self.prefs = Preferences()
+
         # dayZ
         self.temperature = 50 # /100?
         self.thirst = 50 # /100?
@@ -20,16 +26,23 @@ class Player(object):
         self.body = Body()
 
 
+class Preferences(object):
+
+    def __init__(self):
+
+        self.auto_attack = True
+
 
 class Stats(object):
     
     def __init__(self):
 
-        self.agility = 10
-        self.strength = 10
-        self.dodge = 10
-        self.stealth = 10
-        self.defense = 10
+        self.agility    = 10
+        self.strength   = 10
+        self.dodge      = 10
+        self.stealth    = 10
+        self.defense    = 10
+        self.perception = 10
 
 
 
