@@ -213,9 +213,13 @@ class Grid2D:
 
     def frame_coords_2D(self):
         # ABSOLUTE
+        # for y in xrange(self.y-1, 0-1, -1):
+        #     yield [(x,y) for x in xrange(self.x)]
 
-        for y in xrange(self.y-1, 0-1, -1):
-            yield [(x,y) for x in xrange(self.x)]
+        # RELATIVE
+        (px, py) = self.player
+        for y in xrange(py+self.y/2-1, py-self.y/2-1, -1):
+            yield [(x,y) for x in xrange(px-self.x/2, px+self.x/2)]
 
     def render(self, visible, stdscr):
 
@@ -243,7 +247,10 @@ class Grid2D:
                         # stdscr.addstr(final_y+1, x*SPACING+1, Node2D.HIDDEN.encode(CODE))
                         pass
                     else:
-                        self.nodes[(x,y)].render(stdscr, x*SPACING+BORDER_OFFSET_X, final_y+BORDER_OFFSET_Y)
+                        try:
+                            self.nodes[(x,y)].render(stdscr, x*SPACING+BORDER_OFFSET_X+self.x-px*2, final_y+BORDER_OFFSET_Y-self.y/2+py)
+                        except KeyError:
+                            pass
 
                     # stdscr.addstr(final_y, x*2+1, ' ')
 
