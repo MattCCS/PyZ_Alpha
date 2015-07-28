@@ -1,15 +1,8 @@
 #!/usr/bin/env python
 
 import math
-import random
 
 from fractions import Fraction
-from itertools import islice
-from itertools import product
-
-import sys
-
-import os
 
 def case(n):
     return 1 if n >= 0 else -1

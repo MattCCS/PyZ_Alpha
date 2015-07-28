@@ -1,11 +1,5 @@
 
 import itertools
-import math
-
-if __name__ == '__main__':
-    import raytracing2
-else:
-    from pyz.vision import raytracing2
 
 ####################################
 
@@ -83,79 +77,3 @@ def shell_coords(min_dist, max_dist, dimensions=2):
 
 def shell_wrap(n, dimensions=2):
     return shell_coords(n-1, n, dimensions=dimensions)
-
-####################################
-
-def all_paths_to_points(points, listify=False):
-
-    if not points:
-        raise StopIteration
-
-    # could be list or set we're given
-    try:
-        l = len(points[0])
-    except TypeError:
-        e = points.pop()
-        l = len(e)
-        points.add(e)
-
-    center = (0,) * l
-
-    for coord in points:
-        path = raytracing2.gen_path_bounded_absolute(center, coord)
-        # path = raytracing2.get_path(center, coord)
-
-        if listify:
-            path = list(path) # defeats the purpose of an iterator!
-
-        yield path
-
-def save_rays(n, dims=2):
-    import sys
-
-    print "Generating shell..."
-    S = shell_wrap(n, dimensions=dims)
-    print "done."
-
-    print "Sorting endpoints..."
-    S = sorted(list(S))
-    print "done."
-    
-    l = len(S)
-    print "Endpoints: {}".format(l)
-
-    print "Generating all paths to points..."
-    g = all_paths_to_points(S, listify=True)
-    print "done."
-
-    print "Saving..."
-    with open("RAYS_{}D_{}.txt".format(dims, n), 'w') as f:
-        for (i,ray) in enumerate(g, 1):
-            f.write(str(ray) + '\n')
-            if not i % 1000: # every 1000 entries
-                f.flush()
-            sys.stdout.write("\r--> {} / {}".format(i, l))
-            sys.stdout.flush()
-    sys.stdout.write('\n')
-    print "done."
-
-
-def origin(dimensions):
-    return (0,) * dimensions
-
-####################################
-
-def convert_2D_coord_to_angle(coord):
-    return math.degrees(math.atan2(*coord[::-1])) % 360
-
-def coords_between_angles_2D(angle_table_2D, low, high):
-    return set().union(*angle_table_2D[low:high+1])
-
-def angles_around_angle_2D(angle, arc_width):
-    return (angle - arc_width, angle + arc_width)
-
-def coords_around_2D(angle_table_2D, angle, arc_width):
-    return coords_between_angles_2D(angle_table_2D, *angles_around_angle_2D(angle, arc_width))
-
-if __name__ == '__main__':
-    save_rays(10)

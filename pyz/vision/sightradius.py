@@ -1,6 +1,10 @@
 
-from pyz.vision import coord_gen_utils
-from pyz.vision import fasttree
+if __name__ == '__main__':
+    from trees import fasttree
+    from .     import arc_tools
+else:
+    from pyz.vision.trees import fasttree
+    from pyz.vision import arc_tools
 
 
 class SightRadius(object):
@@ -22,7 +26,7 @@ class ArcLight(SightRadius):
         self.arc_width = arc_width
 
     def visible_coords(self, blocked):
-        return self.view.visible_coords(blocked) & coord_gen_utils.coords_around_2D(self.angle_table, self.angle, self.arc_width)
+        return self.view.visible_coords(blocked) & arc_tools.coords_around_2D(self.angle_table, self.angle, self.arc_width)
 
     def set_angle(self, angle):
         self.angle = angle

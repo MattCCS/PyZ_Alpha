@@ -1,13 +1,14 @@
 
 if __name__ == '__main__':
-    import coord_gen_utils
-    import ray_tools
+    from .. import shell_tools
+    from .. import ray_tools
+    from .. import arc_tools
 else:
-    from pyz.vision import coord_gen_utils
+    from pyz.vision import shell_tools
     from pyz.vision import ray_tools
+    from pyz.vision import arc_tools
 
 import ast
-import math
 
 ####################################
 
@@ -56,10 +57,10 @@ def gen_new(radius, dimensions):
     print "Generating radius:{} dimensions:{}".format(radius, dimensions)
 
     print "Generating all points..."
-    all_points = coord_gen_utils.shell_coords(0, radius, dimensions)
+    all_points = shell_tools.shell_coords(0, radius, dimensions)
 
     print "Generating endpoints..."
-    endpoints = coord_gen_utils.shell_wrap(radius, dimensions)
+    endpoints = shell_tools.shell_wrap(radius, dimensions)
     # print "endpoints:", endpoints
 
     print "Calculating all rays..."
@@ -77,7 +78,7 @@ def gen_new(radius, dimensions):
 
     print "[!] Forming angle table..."
     # we include BOTH end angles!
-    angle_table_2D = [set(c for c in table.iterkeys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
+    angle_table_2D = arc_tools.angle_table(table.iterkeys())
 
     print "done."
     return SimpleView(table, radius, dimensions), angle_table_2D
@@ -98,8 +99,9 @@ if __name__ == '__main__':
     print sv.save()
     print at
 
-    print coord_gen_utils.coords_between_angles_2D(at, *angles_around_angle_2D(15, 5))
-    print coord_gen_utils.coords_around_2D(at, 15, 5)
+    # same:
+    print arc_tools.coords_between_angles_2D(at, *arc_tools.angles_around_angle_2D(15, 5))
+    print arc_tools.coords_around_2D(at, 15, 5)
 
     # gen_new_all()
     # gen_new_all(radii=[8,12,16,24,32], dimensions=[3])
