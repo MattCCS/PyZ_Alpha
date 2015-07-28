@@ -1,13 +1,17 @@
 
-from itertools import product, combinations, permutations
+import itertools
+import math
 
-import raytracing2
+if __name__ == '__main__':
+    import raytracing2
+else:
+    from pyz.vision import raytracing2
 
 ####################################
 
 def plusAndMinusPermutations(items):
-    for p in permutations(items):
-        for signs in product([-1,1], repeat=len(items)):
+    for p in itertools.permutations(items):
+        for signs in itertools.product([-1,1], repeat=len(items)):
             yield tuple(a*sign for a,sign in zip(p,signs))
 
 def shell_coords(min_dist, max_dist, dimensions=2):
@@ -43,7 +47,7 @@ def shell_coords(min_dist, max_dist, dimensions=2):
     # UP TO (but not including) MAX_DIST
     # don't repeat things like (0,1) and (1,0), as we'll make these anyways when we permute
 
-    for rest in combinations(possible_not_max, dimensions-1):
+    for rest in itertools.combinations(possible_not_max, dimensions-1):
         
         # don't bother unless you hit the minimum
         # don't include the high bound
@@ -56,13 +60,13 @@ def shell_coords(min_dist, max_dist, dimensions=2):
             if not low_bound < pow_sum <= high_bound:  # WE DONT INCLUDE LOW BOUND!
                 continue
 
-            every = list(permutations(tup))
+            every = list(itertools.permutations(tup))
 
             found.update(every)
 
     # manually add the max coord
     max_coord = (0,) * (dimensions-1) + (max_dist,)
-    every = permutations(max_coord)
+    every = itertools.permutations(max_coord)
     found.update(every)
 
     newfound = set()
@@ -140,6 +144,9 @@ def origin(dimensions):
     return (0,) * dimensions
 
 ####################################
+
+def convert_2D_coord_to_angle(coord):
+    return math.degrees(math.atan2(*coord[::-1])) % 360
 
 def coords_between_angles_2D(angle_table_2D, low, high):
     return set().union(*angle_table_2D[low:high+1])
