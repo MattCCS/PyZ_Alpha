@@ -3,6 +3,7 @@ import coord_gen_utils
 import ray_tools
 
 import ast
+import math
 
 ####################################
 
@@ -70,8 +71,12 @@ def gen_new(radius, dimensions):
         all_hit = ray_tools.all_hit_by(coord, ray_lookup_table)
         table[coord] = all_hit
 
+    print "[!] Forming angle table..."
+    # we include BOTH end angles!
+    angle_table_2D = [set(c for c in table.iterkeys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
+
     print "done."
-    return SimpleView(table, radius, dimensions)
+    return SimpleView(table, radius, dimensions), angle_table_2D
 
 ####################################
 
@@ -84,10 +89,14 @@ def gen_new_all(radii=[8,12,16,24,32], dimensions=[2]):
 ####################################
 
 if __name__ == '__main__':
-    # sv = gen_new(8,2)
-    # print sv
-    # print sv.save()
+    (sv, at) = gen_new(8,2)
+    print sv
+    print sv.save()
+    print at
 
-    gen_new_all()
+    print coords_between_angles_2D(at, *angles_around_angle_2D(15, 5))
+    print coords_around_2D(at, 15, 5)
+
+    # gen_new_all()
     # gen_new_all(radii=[8,12,16,24,32], dimensions=[3])
 

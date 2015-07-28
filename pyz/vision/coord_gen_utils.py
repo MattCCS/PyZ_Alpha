@@ -139,6 +139,16 @@ def save_rays(n, dims=2):
 def origin(dimensions):
     return (0,) * dimensions
 
+####################################
+
+def coords_between_angles_2D(angle_table_2D, low, high):
+    return set().union(*angle_table_2D[low:high+1])
+
+def angles_around_angle_2D(angle, arc_width):
+    return (angle - arc_width, angle + arc_width)
+
+def coords_around_2D(angle_table_2D, angle, arc_width):
+    return coords_between_angles_2D(angle_table_2D, *angles_around_angle_2D(angle, arc_width))
 
 if __name__ == '__main__':
     save_rays(10)

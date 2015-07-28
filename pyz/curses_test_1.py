@@ -58,6 +58,22 @@ def bin2tup(n):
 
 ####################################
 
+class Event(object):
+    """
+    A class representing an abstract event
+    to be resolved one step at a time.
+    """
+
+    def __init__(self, stdscr, grid, coord):
+        self.screen = stdscr
+        self.grid = grid
+        self.coord = coord
+
+    def step(self):
+        pass
+
+####################################
+
 class Node2D(object):
 
     HIDDEN = u'█'
@@ -198,11 +214,12 @@ def yield_coords(range_nums):
             yield (n,) + coord
 
 
-def yield_coords_offset(range_nums, offset_nums):
-    assert len(range_nums) == len(offset_nums)
+# def yield_coords_offset(range_nums, offset_nums):
+#     assert len(range_nums) == len(offset_nums)
 
-    for coord in yield_coords(range_nums):
-        yield tuple(map(sum, zip(coord, offset_nums)))
+#     for coord in yield_coords(range_nums):
+#         yield tuple(map(sum, zip(coord, offset_nums)))
+
 
 ####################################
 
@@ -266,8 +283,6 @@ class Grid2D:
 
         (px,py) = self.player.position
 
-        final_x = self.viewx
-
         for row in self.frame_coords_2D():
 
             try:
@@ -302,10 +317,6 @@ class Grid2D:
             except curses.error:
                 pass # screen is being resized, probably.
 
-            # stdscr.addstr(final_y, sx, s[:final_x].encode(CODE))
-
-            # stdscr.addstr(4, 0, "final_y: {}".format(final_y))
-            # stdscr.addstr(5, 0, "final_x: {}".format(final_x))
 
     def update_viewport(self, stdscr):
         self.viewy, self.viewx = stdscr.getmaxyx()
@@ -413,18 +424,7 @@ class Grid2D:
 
         print "Quit."
 
-
-
-def printsl(s):
-    sys.stdout.write(s.encode('utf-8'))
-    sys.stdout.flush()
-
-def s_and_back(s):
-    return s + '\b'*max(len(s)-1, 0) + '\r'
-
-def render_to_buffer(array2d):
-    s = ''.join('{:<80}'.format(' '.join(row)) for row in array2d)
-    return s_and_back(s)
+####################################
 
 def establish_colors(bg=curses.COLOR_BLACK):
     curses.init_pair(1, curses.COLOR_WHITE, bg) # W/B
@@ -463,7 +463,7 @@ def mainwrapped(stdscr):
         stdscr.addstr(1, 0, "Loading viewtree...")
         stdscr.refresh()
         # PLAYER_VIEW = viewtree.gen_view_from_radius(RADIUS)
-        PLAYER_VIEW = fasttree.gen_new(RADIUS, DIMENSIONS)
+        (PLAYER_VIEW, angle_table_2D) = fasttree.gen_new(RADIUS, DIMENSIONS)
 
         # make trees
         blocked = set()
@@ -508,7 +508,7 @@ def mainwrapped(stdscr):
             stdscr.addstr(3, 0, "Playing...")
             stdscr.refresh()
             # audio.play("/Users/Matt/Music/iTunes/iTunes Media/Music/Alt-J/This Is All Yours/05 Left Hand Free.m4a")
-            audio.rough_loop("environment/swamp.aif", 10)
+            audio.rough_loop("environment/swamp.aif", 100)
             GRID.play(stdscr)
         except Exception as e:
             print e

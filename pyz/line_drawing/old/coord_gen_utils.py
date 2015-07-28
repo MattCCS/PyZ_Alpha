@@ -1,5 +1,6 @@
 
 from itertools import product, combinations, permutations
+import math
 
 import raytracing2
 
@@ -136,9 +137,15 @@ def save_rays(n, dims=2):
     print "done."
 
 
+def convert_2D_coord_to_angle(coord):
+    (x,y) = coord
+    return math.degrees(math.atan2(y,x)) % 360
+
+
 def origin(dimensions):
     return (0,) * dimensions
 
 
 if __name__ == '__main__':
-    save_rays(10)
+    # save_rays(10)
+    pass
