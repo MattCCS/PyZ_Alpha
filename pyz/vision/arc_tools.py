@@ -53,10 +53,19 @@ class AngleTable2D(object):
         self._table = form_angle_table_2D(coords, accuracy)
 
     def between(self, low, high):
-        return union_all(self._table[low:high])
+        if low > high:
+            # wraparound, correct terms
+            (low, high) = (high, low)
+            return self.between(0, low) | self.between(high, 360)
+        else:
+            return union_all(self._table[low:high])
 
     def around(self, angle, rad):
-        return self.between(angle-rad, angle+rad)
+        low  = angle - rad
+        high = angle + rad
+        if low < 0:
+            low %= 360
+        return self.between(low, high)
 
 
 ####################################

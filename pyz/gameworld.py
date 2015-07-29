@@ -8,9 +8,26 @@ from pyz.curses_prep import curses
 from pyz import audio
 from pyz import player
 from pyz import objects
-from pyz.vision.trees import fasttree
+from pyz.vision.rays import arctracing
+from pyz.vision import shell_tools
+from pyz import utils
+
+from pyz import log # <3
 
 ####################################
+# SETTING UP THE LOGGER
+import os
+import log
+ROOTPATH = os.path.splitext(__file__)[0]
+LOGPATH = "{0}.log".format(ROOTPATH)
+LOGGER = log.get(__name__, path=LOGPATH)
+LOGGER.info("----------BEGIN----------")
+
+####################################
+
+def relative_coords(coords, rel_coord):
+    (rx, ry) = rel_coord
+    return set([(x-rx, y-ry) for (x,y) in coords])
 
 def tup2bin(tup):
     return int(''.join(map(str, tup)), 2)
@@ -200,13 +217,39 @@ class Grid2D:
         for coord in blocked_set:
             self.nodes[coord].set_tree()
 
+        rad3 = shell_tools.shell_coords(0, 3)
+        rad7 = shell_tools.shell_coords(0, 7)
+
+        # smoke
+        (cx, cy) = (37, 15)
+        self.nodes[(cx,cy)].set_smoke()
+        self.blocked.add( (cx,cy) )
+        for x,y in rad3:
+            self.blocked.add( (x+cx, y+cy) )
+            self.nodes[(x+cx, y+cy)].set_smoke()
+
+        # grass
+        (cx, cy) = (20, 9)
+        if not (cx,cy) in self.blocked:
+            self.nodes[(cx,cy)].set_grass()
+        for x,y in rad7:
+            if not (x+cx,y+cy) in self.blocked:
+                self.nodes[(x+cx, y+cy)].set_grass()
+
         self.view = player_view
         self.player = player.Player()
         self.player.weapon = objects.WEAPONS['axe1']
         self.player_sneakwalksprint = 1
         self.player_stand_state = 2
+        self.player.lantern = objects.Lantern(16, self.player)
+        self.player.lantern.can_age = True
 
-        # self.lightsources = [self.player.lantern]
+        lantern_coord = (17,9)
+        self.lightsources = [self.player.lantern, objects.Lantern(8, None, lantern_coord)]
+        self.nodes[lantern_coord].set_dirt()
+        self.nodes[lantern_coord].appearance = 'X'
+        self.nodes[lantern_coord].color = 4
+        self.nodes[lantern_coord].old_color = 4
 
     def reset(self, coords=None):
         if coords is None:
@@ -217,12 +260,8 @@ class Grid2D:
         for node in nodes:
             node.reset()
 
-    def relative_blocked(self):
-        (px,py) = self.player.position
-        return set([(x-px, y-py) for (x,y) in self.blocked])
-
     def frame_coords_2D(self):
-        (px, py) = self.player.position
+        (px, py) = self.player.position()
 
         # # ABSOLUTE, around player
         # for y in xrange(py+self.y/2-1, py-self.y/2-1, -1):
@@ -241,7 +280,7 @@ class Grid2D:
         BORDER_OFFSET_X = 1
         BORDER_OFFSET_Y = 1
 
-        (px,py) = self.player.position
+        (px,py) = self.player.position()
 
         for row in self.frame_coords_2D():
 
@@ -280,6 +319,7 @@ class Grid2D:
         self.viewy, self.viewx = stdscr.getmaxyx()
 
     # @profile
+    @log.logwrap
     def tick(self, key, stdscr):
         stdscr.erase()
 
@@ -291,10 +331,10 @@ class Grid2D:
 
         ####################################
         # updating
-        (oldx, oldy) = self.player.position
+        (oldx, oldy) = self.player.position()
         if key in ARROW_KEYS:
 
-            (x,y) = self.player.position
+            (x,y) = self.player.position()
             if key == curses.KEY_UP:
                 y = min(y+1, self.y-1)
             elif key == curses.KEY_DOWN:
@@ -304,12 +344,12 @@ class Grid2D:
             elif key == curses.KEY_RIGHT:
                 x = min(x+1, self.x-1)
 
-            if (x,y) == self.player.position:
+            if (x,y) == self.player.position():
                 pass # edge of map
                 # TODO: should be edge of AVAILABLE map
             elif self.nodes[(x,y)].passable:
                 audio.play_movement(self.player_stand_state, self.player_sneakwalksprint, self.nodes[(x,y)].material)
-                self.player.position = (x,y)
+                self.player.set_position( (x,y) )
             else:
                 # it's an obstacle!  AKA gameobject
                 if self.player.prefs.auto_attack and self.player.weapon:
@@ -335,28 +375,49 @@ class Grid2D:
 
         ####################################
         # rendering
-        visible = self.view.visible_coords(self.relative_blocked())  # MUST PASS RELATIVE
-        visible.add( (0,0) )
+        ####################################
+        # ASBOLUTE
+        visible = set()
 
-        # if we're in smoke, show adjacents
-        if visible == set( [(0,0)] ):
-            visible.update( [(1,0), (-1,0), (0,-1), (0,1)] )
+        # add all light sources
+        for light in self.lightsources:
+            _blocked_relative = relative_coords(self.blocked, light.position())
+            _blocked_relative = utils.relevant_blocked(_blocked_relative, light.radius, shell_tools.CACHE) # saves work
+            # _visible = utils.visible_coords_absolute_2D(_blocked, light, light.position())
+            _visible = light.visible_coords(_blocked_relative)
+            _visible = relative_coords(_visible, utils.coord_invert(light.position()))
+            visible.update(_visible)
+
+        ####################################
+        # RELATIVE
+        visible = relative_coords(visible, self.player.position()) # now relative to player!!
+
+        # add special overlaps (trees the player *can't* see but which block vision nonetheless)
+        # faster now, since 'visible' is smaller
+        _player_blocked_relative = relative_coords(self.blocked, self.player.position())
+        _player_potential_relative = utils.remaining(visible, _player_blocked_relative, arctracing.BLOCKTABLE)
+
+        visible &= _player_potential_relative
+
+        # # if we're in smoke, show adjacents
+        # if visible == set( [(0,0)] ):
+        #     visible.update( [(1,0), (-1,0), (0,-1), (0,1)] )
 
         # player
-        self.nodes[self.player.position].set_has_player()
+        self.nodes[self.player.position()].set_has_player()
 
-        # printsl(self.render(visible)) # TODO !!!
         self.render(visible, stdscr)
         stdscr.border()
-        stdscr.addstr(0, 0, "player: {}".format(self.player.position))
+        stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
         stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
         stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
         stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
-        L = [(k,v) for k,v in self.nodes.iteritems() if v.has_player]
-        stdscr.addstr(6, 0, "nodes with player: {} -- {}".format( len(L), L[0][0] ))
         stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
 
         self.reset() # <--- improve this
+
+        for obj in objects.Object.record:
+            obj.age()
 
 
     def play(self, stdscr):

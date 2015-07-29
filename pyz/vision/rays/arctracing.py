@@ -3,7 +3,7 @@ import math
 
 from pyz.vision import arc_tools
 from pyz.vision import shell_tools
-from pyz import settings
+from pyz import utils
 
 ####################################
 
@@ -57,10 +57,7 @@ def coords_behind_2D_perpwall(coord, angletable_2D=arc_tools.TABLE, shellcache=s
 
     mag = int(round(magnitude(coord)))
 
-    if mag < float(settings.MAX_RADIUS)/2:
-        return between - shellcache.coords_before(mag+1)
-    else:
-        return between & shellcache.coords_after(mag+1)
+    return utils.fast_hemiarc(between, mag, shellcache)
 
 def form_blocktable2D(angletable_2D=arc_tools.TABLE, shellcache=shell_tools.CACHE):
     coords = shellcache.coords()

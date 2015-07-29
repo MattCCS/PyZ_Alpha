@@ -1,6 +1,7 @@
 
 from pyz.vision.rays import arctracing
 from pyz import settings
+from pyz import utils
 
 import ast
 
@@ -22,8 +23,7 @@ class SimpleView(object):
         self.all = set(table.keys())
 
     def visible_coords(self, blocked):
-        # crazy fast.
-        return self.all - set().union(*(self.table.get(coord, []) for coord in blocked))
+        return utils.remaining(self.all, blocked, self.table)
 
     def save(self):
         return str(self.table)

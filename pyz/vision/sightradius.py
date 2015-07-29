@@ -1,33 +1,47 @@
 
 from pyz.vision.trees import fasttree
+from pyz.vision.rays import arctracing
 from pyz.vision import arc_tools
+from pyz.vision import shell_tools
+from pyz import utils
+# from pyz import settings
 
 ####################################
 
-# class SightRadius(object):
+class SightRadius2D(object):
 
-#     def __init__(self, radius, dimensions):
-#         self.radius = radius
-#         self.dimensions = dimensions
-#         self.view = fasttree.gen_new(radius, dimensions)
+    def __init__(self, radius, shellcache=shell_tools.CACHE, blocktable=arctracing.BLOCKTABLE):
+        self.radius = radius
+        self.shellcache = shellcache
+        self.blocktable = blocktable
 
-#     def visible_coords(self, blocked):
-#         return self.view.visible_coords(blocked)
+    def potentially_illuminated(self):
+        # TODO:
+        # this recalculates every tick
+        return self.shellcache.coords_before(self.radius)
+
+    def visible_coords(self, blocked_relative):
+        return utils.remaining(self.potentially_illuminated(), blocked_relative, self.blocktable)
 
 
-# class ArcLight(SightRadius):
+class ArcLight2D(SightRadius2D):
 
-#     def __init__(self, radius, dimensions, angle, arc_width):
-#         super(ArcLight, self).__init__(radius, dimensions)
-#         self.angle = angle
-#         self.arc_width = arc_width
+    def __init__(self, radius, angle, arc_radius, shellcache=shell_tools.CACHE, blocktable=arctracing.BLOCKTABLE, angletable2D=arc_tools.TABLE):
+        # super(ArcLight2D, self).__init__(radius, shellcache=shellcache, blocktable=blocktable)
+        SightRadius2D.__init__(self, radius, shellcache=shellcache, blocktable=blocktable)
+        self.angle = angle
+        self.arc_radius = arc_radius
+        self.angletable2D = angletable2D
 
-#     def visible_coords(self, blocked):
-#         return self.view.visible_coords(blocked) & arc_tools.coords_around_2D(self.angle_table, self.angle, self.arc_width)
+    def potentially_illuminated(self):
+        return utils.fast_hemiarc(self.angletable2D.around(self.angle, self.arc_radius), self.radius, self.shellcache)
 
-#     def set_angle(self, angle):
-#         self.angle = angle
+    def visible_coords(self, blocked_relative):
+        return utils.remaining(self.potentially_illuminated(), blocked_relative, self.blocktable)
 
-#     def set_arc(self, arc):
-#         self.arc_width = arc
+    def set_angle(self, angle):
+        self.angle = angle
+
+    def set_arc(self, arc):
+        self.arc_radius = arc
 

@@ -1,9 +1,10 @@
 
-class Player(object):
+from pyz import objects
 
-    def __init__(self):
+class Player(objects.Object):
 
-        self.position = (0,0)
+    def __init__(self, parent=None, position=(0,0)):
+        objects.Object.__init__(self, parent, position)
 
         self.weapon = None
 
