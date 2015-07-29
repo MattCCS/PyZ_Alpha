@@ -1,19 +1,65 @@
 
 import math
 
+from pyz.vision import shell_tools
+from pyz import settings
+
+####################################
+
 def convert_2D_coord_to_angle(coord):
     return math.degrees(math.atan2(*coord[::-1])) % 360
 
-def coords_between_angles_2D(angle_table_2D, low, high):
-    return set().union(*angle_table_2D[low:high+1])
+# def coords_between_angles_2D(angle_table_2D, low, high):
+#     return set().union(*angle_table_2D[low:high+1])
 
 def angles_around_angle_2D(angle, arc_width):
     return (angle - arc_width, angle + arc_width)
 
-def coords_around_2D(angle_table_2D, angle, arc_width):
-    return coords_between_angles_2D(angle_table_2D, *angles_around_angle_2D(angle, arc_width))
+# def coords_around_2D(angle_table_2D, angle, arc_width):
+#     return coords_between_angles_2D(angle_table_2D, *angles_around_angle_2D(angle, arc_width))
 
 ####################################
 
-def angle_table(coords):
-    return [set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
+def union_all(sets):
+    return set().union(*sets)
+
+def form_angle_table_2D(coords, accuracy):
+    # V1
+    # slower, but guaranteed symmetrical
+    # return [set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
+
+    # table = []
+    # for ang in xrange(360):
+    #     sub = set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1)
+    #     table.append(sub)
+    #     print ang, len(coords)
+    # return table
+
+    # V2
+    # faster, but may be asymmetrical?  maybe not?  depends on process/bounds.  test it out.
+    table = []
+    for ang in xrange(360):
+        sub = set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1)
+        table.append(sub)
+        coords.difference_update(sub)
+        # print ang, len(coords)
+    return table
+
+
+class AngleTable2D(object):
+
+    def __init__(self, coords, accuracy=settings.ARC_ACCURACY):
+        self.accuracy = accuracy
+        self._table = form_angle_table_2D(coords, accuracy)
+
+    def between(self, low, high):
+        return union_all(self._table[low:high])
+
+    def around(self, angle, rad):
+        return self.between(angle-rad, angle+rad)
+
+
+####################################
+# SETUP
+print "Forming AngleTable2D({})...".format(len(shell_tools.CACHE.coords()))
+TABLE = AngleTable2D(shell_tools.CACHE.coords())

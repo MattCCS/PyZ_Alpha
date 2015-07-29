@@ -1,5 +1,6 @@
 
 from pyz.vision.rays import raytracing2
+from pyz.vision import shell_tools
 
 ####################################
 
@@ -67,7 +68,7 @@ def save_rays(n, dims=2):
     import sys
 
     print "Generating shell..."
-    S = shell_wrap(n, dimensions=dims)
+    S = shell_tools.shell_wrap(n, dimensions=dims)
     print "done."
 
     print "Sorting endpoints..."

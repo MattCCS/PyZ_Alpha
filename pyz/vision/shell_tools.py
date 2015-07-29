@@ -1,6 +1,8 @@
 
 import itertools
 
+from pyz import settings
+
 ####################################
 
 def plusAndMinusPermutations(items):
@@ -9,14 +11,9 @@ def plusAndMinusPermutations(items):
             yield tuple(a*sign for a,sign in zip(p,signs))
 
 def shell_coords(min_dist, max_dist, dimensions=2):
-    """
-    DOES NOT INCLUDE MIN (0,0) !!!
-
-    We don't care about the origin.
-    """
 
     if min_dist <= max_dist <= 0:
-        return set()
+        return set( [(0,) * dimensions] )
 
     assert type(min_dist) is int
     assert type(max_dist) is int
@@ -72,8 +69,58 @@ def shell_coords(min_dist, max_dist, dimensions=2):
 
             newfound.add(new)
 
+    if min_dist == 0:
+        newfound.add( (0,) * dimensions )
+
     return newfound
 
 
 def shell_wrap(n, dimensions=2):
     return shell_coords(n-1, n, dimensions=dimensions)
+
+def rings_from(a, b, dimensions=2):
+    return [shell_wrap(n, dimensions=dimensions) for n in xrange(a,b)]
+
+####################################
+
+class ShellCache(object):
+
+    def __init__(self, radius, dimensions=2):
+        self.radius = radius
+        self._shells = rings_from(0, radius+1, dimensions=dimensions)
+
+
+    def shells(self):
+        return self._shells
+
+    def shells_between(self, low, high):
+        return self._shells[low:high]
+
+    def shells_before(self, high):
+        return self._shells[:high]
+
+    def shells_after(self, low):
+        return self._shells[low:]
+
+
+    def union(self, shells):
+        return set().union(*shells)
+
+
+    def coords(self):
+        return self.union(self.shells())
+
+    def coords_between(self, low, high):
+        return self.union(self.shells_between(low, high))
+
+    def coords_before(self, high):
+        return self.union(self.shells_before(high))
+
+    def coords_after(self, low):
+        return self.union(self.shells_after(low))
+
+####################################
+# SETUP
+
+print "Forming ShellCache({})...".format(settings.MAX_RADIUS)
+CACHE = ShellCache(settings.MAX_RADIUS)

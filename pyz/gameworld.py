@@ -2,10 +2,8 @@
 
 import random
 
-import curses
-import locale
-locale.setlocale(locale.LC_ALL, "")
-CODE = locale.getpreferredencoding()
+from pyz.curses_prep import CODE
+from pyz.curses_prep import curses
 
 from pyz import audio
 from pyz import player
@@ -196,10 +194,6 @@ class Grid2D:
         self.viewx = x
         self.viewy = y
 
-        # # make plane
-        # gen_row     = lambda n: [Node2D(3) for i in xrange(n)]
-        # gen_plane   = lambda x,y: [gen_row(x) for i in xrange(y)]
-        # self.nodes = gen_plane(x,y)
         self.nodes = {coord : Node2D(self, 3, coord) for coord in yield_coords( (self.x, self.y) )}
 
         self.blocked = blocked_set
@@ -211,6 +205,8 @@ class Grid2D:
         self.player.weapon = objects.WEAPONS['axe1']
         self.player_sneakwalksprint = 1
         self.player_stand_state = 2
+
+        # self.lightsources = [self.player.lantern]
 
     def reset(self, coords=None):
         if coords is None:

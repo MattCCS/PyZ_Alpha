@@ -1,6 +1,7 @@
 
 from pyz import audio
 
+
 class Object(object):
     """
     An Object is any physically-interactive
@@ -14,9 +15,16 @@ class Item(Object):
     An Item is a subset of Object -- it is a
     physically-interactive *thing* because we can
     place it/throw it/inspect it/etc., but it is
-    also something that can be equipped/used/put in inventory.
+    also something that can be held/used/put in inventory.
     """
     pass
+
+
+class Lantern(Item):
+
+    def __init__(self, radius, position):
+        self.position = position
+
 
 class Weapon(Item):
 

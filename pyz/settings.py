@@ -10,3 +10,10 @@ RAYTABLE_DIR = "RAYTABLES/"
 
 WIDTH  = 80
 HEIGHT = 24
+
+DIMENSIONS = 2
+
+MAX_RADIUS = 16
+SHELL_ACCURACY = 1 # 1 = 1.0 diff, 2 = 0.5 diff, etc.
+
+ARC_ACCURACY = 1 # 1 = 360, 2 = 720, etc.

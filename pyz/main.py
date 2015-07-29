@@ -1,15 +1,12 @@
 
 import random
 
+from pyz.curses_prep import curses
+
 from pyz import audio
 from pyz import gameworld
 from pyz.vision import shell_tools
 from pyz.vision.trees import fasttree
-
-import curses
-import locale
-locale.setlocale(locale.LC_ALL, "")
-CODE = locale.getpreferredencoding()
 
 ####################################
 # GLOBALS
@@ -22,7 +19,7 @@ Y = 50
 PLAY = 1
 
 BLOCK_CHANCE_MIN = 20
-BLOCK_CHANCE_MAX = 250
+BLOCK_CHANCE_MAX = 80
 
 ####################################
 
@@ -79,7 +76,8 @@ def mainwrapped(stdscr):
         stdscr.addstr(1, 0, "Loading viewtree...")
         stdscr.refresh()
         # PLAYER_VIEW = viewtree.gen_view_from_radius(RADIUS)
-        (PLAYER_VIEW, angle_table_2D) = fasttree.gen_new(RADIUS, DIMENSIONS)
+        # (PLAYER_VIEW, angle_table_2D) = fasttree.gen_new(RADIUS, DIMENSIONS)
+        PLAYER_VIEW = fasttree.VIEW
 
         # make trees
         blocked = set()
