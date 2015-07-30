@@ -49,6 +49,10 @@ SPEED_DICT = {
 
 ARROW_KEYS = {curses.KEY_LEFT, curses.KEY_RIGHT, curses.KEY_UP, curses.KEY_DOWN}
 
+def say(s):
+    import subprocess
+    # subprocess.check_output(['say', s, '-r', '400'])
+
 ####################################
 
 class Node2D(object):
@@ -204,9 +208,17 @@ def yield_coords(range_nums):
 #     for coord in yield_coords(range_nums):
 #         yield tuple(map(sum, zip(coord, offset_nums)))
 
-def say(s):
-    import os
-    os.system('say {}'.format(s))
+def key_to_coord(key):
+    if key == curses.KEY_UP:
+        return (0,1)
+    elif key == curses.KEY_DOWN:
+        return (0,-1)
+    elif key == curses.KEY_LEFT:
+        return (-1,0)
+    elif key == curses.KEY_RIGHT:
+        return (1,0)
+
+    return (0,0)
 
 ####################################
 
@@ -228,6 +240,7 @@ class Grid2D:
         # events
         self.visual_events_top    = []
         self.visual_events_bottom = []
+        self.requested_waits = []
         self.blocking_events      = []
         self.non_blocking_events  = []
 
@@ -389,10 +402,9 @@ class Grid2D:
                 self.player.flashlight.toggle()
 
             elif key == ord('m'):
-                self.player.flashlight.toggle_mode(self, stdscr, None)
+                self.player.flashlight.toggle_mode(self, stdscr)
 
-            diff = utils.coord_diff((oldx,oldy), self.player.position())
-            self.player.flashlight.update_direction(diff)
+            self.player.flashlight.update_direction(key_to_coord(key))
 
         stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
 
@@ -433,31 +445,70 @@ class Grid2D:
     def has_visual_events(self):
         return bool(self.visual_events_top) or bool(self.visual_events_bottom)
 
+    def visual_requested_wait(self):
+        if self.requested_waits:
+            wait = max(self.requested_waits)
+            self.requested_waits = []
+        else:
+            wait = 0
+
+        return wait
+
     # @profile
-    # @log.logwrap
+    @log.logwrap
     def tick(self, key, stdscr):
         import time
 
-        for obj in objects.Object.record:
-            obj.age(self, stdscr)
-
         # TODO: \/
         stdscr.erase() # should erase() be INSIDE phase 2?  need a better understanding.
+        # say('start phase 1')
         self.tick_phase_1(key, stdscr)
+        # say('end')
+
+        # say('start age')
+        for obj in objects.Object.record:
+            obj.age(self, stdscr)
+        # say('end')
+
+        say('start phase 2')
         self.tick_phase_2(stdscr)
-        while self.has_visual_events():
-            time.sleep(0.05) # <--- need to standardize this wait time!
-            stdscr.clear()
-            self.tick_phase_2(stdscr) # this must decrement visual events
-            stdscr.refresh()
-            # TODO: ^
+        say('end')
+
+        say('start refresh')
         stdscr.refresh()
-        self.tick_phase_3(stdscr)
+        say('end')
+
+        if self.has_visual_events():
+            while self.has_visual_events():
+                say('cycle')
+
+                # say('start sleep')
+                time.sleep(self.visual_requested_wait()) # <--- need to standardize this wait time!  or dynamicize it??
+                # say('end sleep')
+
+                say('start clear')
+                stdscr.erase()
+                say('end')
+
+                say('start phase 2')
+                self.tick_phase_2(stdscr) # this *must* decrement all visual events.
+                say('end')
+
+                say('start refresh')
+                stdscr.refresh()
+                say('end')
+
+        say('start phase 3')
+        self.tick_phase_3()
+        say('end')
+        # os.system('say done')
 
     def tick_phase_1(self, key, stdscr):
 
         ####################################
-        # visual events pause interaction
+        # TOP visual events pause interaction
+        # since these are to be watched
+        # BOTTOM visual events simply occur
 
         if key == curses.KEY_RESIZE:
             self.update_viewport(stdscr)
@@ -465,7 +516,7 @@ class Grid2D:
             stdscr.refresh()
             audio.play("weapons/trigger.aif", volume=0.2)
 
-        elif not self.has_visual_events():
+        elif not self.visual_events_top:
             self.handle_interaction(key, stdscr)
 
         # player
@@ -480,14 +531,15 @@ class Grid2D:
         # modifiers
         for event in self.visual_events_bottom:
             event.step()
-
         self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
+
         # background
         self.render(self.determine_visible(), stdscr)
 
         # exceptions
         for event in self.visual_events_top:
             event.step()
+            # os.system('say ok')
         self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
 
         # foreground
@@ -497,7 +549,7 @@ class Grid2D:
         stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
         stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
 
-    def tick_phase_3(self, stdscr):
+    def tick_phase_3(self):
 
         self.reset() # <--- improve this
 

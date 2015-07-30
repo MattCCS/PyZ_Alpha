@@ -27,16 +27,16 @@ class SightRadius2D(object):
 
 class ArcLight2D(SightRadius2D):
 
-    def __init__(self, radius, angle, arc_radius, shellcache=shell_tools.CACHE, blocktable=arctracing.BLOCKTABLE, angletable2D=arc_tools.TABLE):
+    def __init__(self, radius, angle, arc_length, shellcache=shell_tools.CACHE, blocktable=arctracing.BLOCKTABLE, angletable2D=arc_tools.TABLE):
         # super(ArcLight2D, self).__init__(radius, shellcache=shellcache, blocktable=blocktable)
         SightRadius2D.__init__(self, radius, shellcache=shellcache, blocktable=blocktable)
         self.angle = angle
-        self.arc_radius = arc_radius
+        self.arc_length = arc_length
         self.angletable2D = angletable2D
 
     @log.logwrap
     def potentially_illuminated(self):
-        potential = self.angletable2D.around(self.angle, self.arc_radius) | set([(0,0)])
+        potential = self.angletable2D.around(self.angle, self.arc_length) | set([(0,0)])
         return potential - utils.fast_hemiarc(potential, self.radius, self.shellcache)
 
     @log.logwrap
@@ -48,5 +48,5 @@ class ArcLight2D(SightRadius2D):
         self.angle = angle
 
     def set_arc(self, arc):
-        self.arc_radius = arc
+        self.arc_length = arc
 

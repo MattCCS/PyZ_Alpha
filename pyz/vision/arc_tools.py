@@ -11,8 +11,11 @@ def relative_angle(c1, c2):
     rel = utils.coord_diff(c2, c1)
     return convert_2D_coord_to_angle(rel)
 
+def convert_2D_coord_to_angle_no_remap(coord):
+    return math.degrees(math.atan2(*coord[::-1]))
+
 def convert_2D_coord_to_angle(coord):
-    return math.degrees(math.atan2(*coord[::-1])) % 360
+    return convert_2D_coord_to_angle_no_remap(coord) % 360
 
 # def coords_between_angles_2D(angle_table_2D, low, high):
 #     return set().union(*angle_table_2D[low:high+1])
@@ -68,8 +71,8 @@ class AngleTable2D(object):
     def around(self, angle, rad):
         low  = angle - rad
         high = angle + rad
-        if low < 0:
-            low %= 360
+        low %= 360
+        high %= 360
         return self.between(low, high)
 
 

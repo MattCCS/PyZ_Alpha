@@ -6,6 +6,10 @@ PROJECT_PATH = os.path.dirname(THIS_FILE)
 
 ####################################
 
+LOG_FUNCTIONS = False
+
+####################################
+
 RAYTABLE_DIR = "RAYTABLES/"
 
 WIDTH  = 80

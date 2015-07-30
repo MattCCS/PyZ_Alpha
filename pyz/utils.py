@@ -8,7 +8,7 @@ def coord_invert(coord):
     return tuple(map(lambda n:-n, coord))
 
 def coord_diff(a, b):
-    return map(lambda p: p[0]-p[1], zip(*[a,b]))
+    return tuple(map(lambda p: p[0]-p[1], zip(*[a,b])))
 
 ####################################
 

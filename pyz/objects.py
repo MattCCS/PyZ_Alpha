@@ -79,16 +79,16 @@ class Lantern(Item, sightradius.SightRadius2D):
 
 class Flashlight(Item, sightradius.ArcLight2D):
 
-    def __init__(self, radius, angle, arc_radius, parent, position=CENTER):
+    def __init__(self, radius, angle, arc_length, parent, position=CENTER):
         Item.__init__(self, parent, position)
-        sightradius.ArcLight2D.__init__(self, radius, angle, arc_radius) # default shellcache/blocktable/angletable
+        sightradius.ArcLight2D.__init__(self, radius, angle, arc_length) # default shellcache/blocktable/angletable
 
         self.on = True
         self.focus = (20,30)
         self.modes = ['static', 'facing', 'focus']
         self.mode = 0
-        self.focus_threshold = 5
-        self.focus_speed = 7
+        self.focus_threshold = self.arc_length / 2
+        self.focus_speed = 12
 
     def visible_coords(self, blocked_relative):
         if not self.on:
@@ -101,18 +101,30 @@ class Flashlight(Item, sightradius.ArcLight2D):
         self.on = not self.on
 
     def toggle_mode(self, grid, stdscr):
+        audio.play("weapons/trigger.aif", volume=0.2)
         self.mode = (self.mode + 1) % len(self.modes)
         # if self.modes[self.mode] == 'focus':
         #     self.update(grid, stdscr)
 
+    def is_focusing(self):
+        return self.modes[self.mode] == 'focus'
+
     def target_angle_diff(self):
         return int(round(arc_tools.relative_angle(self.position(), self.focus)))
+
+    def facing_away(self):
+        return abs(self.target_angle_diff() - self.angle) > self.focus_threshold
 
     def update(self, grid, stdscr):
         target = self.target_angle_diff()
         grid.visual_events_bottom.append(events.FacingEvent(grid, stdscr, None, self, self.angle, target, self.focus_speed))
+        grid.visual_events_top.append(events.GenericFocusEvent(grid, stdscr, self.focus))
     
+    @log.logwrap
     def update_direction(self, direction):
+        if self.modes[self.mode] != 'facing':
+            return
+
         if direction == (1,0):
             self.angle = 0
         elif direction == (0,1):
@@ -123,9 +135,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
             self.angle = 270
 
     def age(self, grid, stdscr):
-        if abs(self.target_angle_diff() - self.angle) > self.focus_threshold:
-            # import os
-            # os.system('say far')
+        if self.on and self.facing_away() and self.is_focusing():
             self.update(grid, stdscr)
 
 

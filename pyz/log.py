@@ -24,6 +24,8 @@ for more details.
 import logging
 from logging.handlers import RotatingFileHandler
 
+from pyz import settings
+
 import sys
 import traceback
 from functools import wraps
@@ -174,6 +176,9 @@ def logwrap(func):
     Useful for more egregious errors (such as logical errors,
     or the abuse of function signatures).
     """
+    
+    if not settings.LOG_FUNCTIONS:
+        return func
 
     global _FIRST, _META_LOGGER
     if _FIRST:

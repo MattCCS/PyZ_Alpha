@@ -20,10 +20,12 @@ class Event(object):
         if self.dead:
             return
 
+
 class GenericInteractVisualEvent(Event):
 
     def __init__(self, grid, stdscr, coord):
         Event.__init__(self, grid, stdscr, coord)
+        grid.requested_waits.append(0.1)
 
         self.ticks = 2
 
@@ -43,6 +45,22 @@ class GenericInteractVisualEvent(Event):
             self.dead = True
 
         self.ticks -= 1
+
+
+class GenericFocusEvent(Event):
+
+    def __init__(self, grid, stdscr, coord):
+        Event.__init__(self, grid, stdscr, coord)
+
+        self.step()
+
+    def step(self):
+        if self.dead:
+            return
+
+        node = self.grid.nodes[self.coord]
+        node.reverse_video = True
+        self.dead = True
 
 
 class FacingEvent(Event):
@@ -66,11 +84,11 @@ class FacingEvent(Event):
 
         self.deathcounter = 1
 
-        self.step()
+        # self.step()
 
     @log.logwrap
     def step(self):
-        self.arc.angle = self.angle
+        self.arc.angle = self.angle % 360
 
         if self.dead:
             return

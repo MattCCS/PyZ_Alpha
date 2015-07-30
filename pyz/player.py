@@ -3,7 +3,7 @@ from pyz import objects
 
 class Player(objects.Object):
 
-    def __init__(self, parent=None, position=(0,0)):
+    def __init__(self, parent=None, position=(20,20)):
         objects.Object.__init__(self, parent, position)
 
         self.weapon = None
