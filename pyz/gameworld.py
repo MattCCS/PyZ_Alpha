@@ -480,8 +480,8 @@ class Grid2D:
         # modifiers
         for event in self.visual_events_bottom:
             event.step()
-        self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
 
+        self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
         # background
         self.render(self.determine_visible(), stdscr)
 
