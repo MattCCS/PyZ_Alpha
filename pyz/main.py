@@ -23,22 +23,6 @@ BLOCK_CHANCE_MAX = 80
 
 ####################################
 
-class Event(object):
-    """
-    A class representing an abstract event
-    to be resolved one step at a time.
-    """
-
-    def __init__(self, stdscr, grid, coord):
-        self.screen = stdscr
-        self.grid = grid
-        self.coord = coord
-
-    def step(self):
-        pass
-
-####################################
-
 @log.logwrap
 def establish_colors(bg=curses.COLOR_BLACK):
     curses.init_pair(1, curses.COLOR_WHITE, bg) # W/B

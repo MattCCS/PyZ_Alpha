@@ -1,0 +1,9 @@
+#!/bin/bash
+
+####################################
+# run this script to begin the project
+#
+# NOTE:  always run me as: "./run"
+####################################
+
+python -B -m pyz.main # no bytecode

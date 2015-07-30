@@ -12,16 +12,14 @@ from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
 from pyz import utils
 
-from pyz import log # <3
-
 ####################################
 # SETTING UP THE LOGGER
 import os
-import log
-ROOTPATH = os.path.splitext(__file__)[0]
-LOGPATH = "{0}.log".format(ROOTPATH)
-LOGGER = log.get(__name__, path=LOGPATH)
-LOGGER.info("----------BEGIN----------")
+from pyz import log # <3
+# ROOTPATH = os.path.splitext(__file__)[0]
+# LOGPATH = "{0}.log".format(ROOTPATH)
+# LOGGER = log.get(__name__, path=LOGPATH)
+# LOGGER.info("----------BEGIN----------")
 
 ####################################
 
@@ -76,6 +74,9 @@ class Node2D(object):
         self.parentgrid = parentgrid
         self.coord = coord
 
+        self.reverse_video = False
+
+        self.name = '---'
         self.passable, self.transparent = code
         self.has_player = False
         self.material = None
@@ -92,22 +93,29 @@ class Node2D(object):
     # permanent?
 
     def set_tree(self):
+        self.name = 'tree'
         self.passable = False
         self.transparent = False
         self.damageable = True
+        self.appearance = 'O'
         self.color = 5
         self.old_color = 5
         self.material = 'wood'
         self.health = random.randint(8,15)
 
     def set_smoke(self):
+        self.name = 'smoke'
         self.passable = True
         self.transparent = False
         self.damageable = False
+        self.appearance = random.choice("%&")
+        # same material?
+        self.material = 'dirt' # sound.
         self.color = 6
         self.old_color = 6
 
     def set_grass(self):
+        self.name = 'grass'
         self.passable = True
         self.transparent = True
         self.damageable = False
@@ -117,6 +125,7 @@ class Node2D(object):
         self.old_color = self.color
 
     def set_dirt(self):
+        self.name = 'dirt/clay'
         self.passable = True
         self.transparent = True
         self.material = 'dirt'
@@ -159,23 +168,19 @@ class Node2D(object):
         return tup2bin(map(int, self.code()))
 
     def render(self, stdscr, x, y):
-        c = self.code_num()
 
-        if c == 0:
-            char = Node2D.SOLID
-        elif c == 1:
-            char = Node2D.GLASS
-        elif c == 2:
-            char = Node2D.SMOKE
-        elif c == 3:
-            char = self.appearance
-        else:
-            char = Node2D.ERROR
+        if self.name == 'smoke':
+            self.appearance = random.choice("%&")
+
+        char = self.appearance if self.appearance else Node2D.ERROR
 
         if self.has_player:
             char = Node2D.PLAYER
 
-        stdscr.addstr(y, x, char.encode(CODE), curses.color_pair(self.color))
+        if not self.reverse_video:
+            stdscr.addstr(y, x, char.encode(CODE), curses.color_pair(self.color))
+        else:
+            stdscr.addstr(y, x, char.encode(CODE), curses.A_REVERSE)
 
 ####################################
 
@@ -199,6 +204,9 @@ def yield_coords(range_nums):
 #     for coord in yield_coords(range_nums):
 #         yield tuple(map(sum, zip(coord, offset_nums)))
 
+def say(s):
+    import os
+    os.system('say {}'.format(s))
 
 ####################################
 
@@ -217,6 +225,11 @@ class Grid2D:
         for coord in blocked_set:
             self.nodes[coord].set_tree()
 
+        # events
+        self.visual_events       = []
+        self.blocking_events     = []
+        self.non_blocking_events = []
+
         rad3 = shell_tools.shell_coords(0, 3)
         rad7 = shell_tools.shell_coords(0, 7)
 
@@ -228,6 +241,9 @@ class Grid2D:
             self.blocked.add( (x+cx, y+cy) )
             self.nodes[(x+cx, y+cy)].set_smoke()
 
+        # self.nodes[(cx,cy)].set_tree()
+        # self.blocked.add((cx,cy))
+
         # grass
         (cx, cy) = (20, 9)
         if not (cx,cy) in self.blocked:
@@ -236,7 +252,6 @@ class Grid2D:
             if not (x+cx,y+cy) in self.blocked:
                 self.nodes[(x+cx, y+cy)].set_grass()
 
-        self.view = player_view
         self.player = player.Player()
         self.player.weapon = objects.WEAPONS['axe1']
         self.player_sneakwalksprint = 1
@@ -318,16 +333,8 @@ class Grid2D:
     def update_viewport(self, stdscr):
         self.viewy, self.viewx = stdscr.getmaxyx()
 
-    # @profile
     @log.logwrap
-    def tick(self, key, stdscr):
-        stdscr.erase()
-
-        if key == curses.KEY_RESIZE:
-            self.update_viewport(stdscr)
-            curses.resize_term(self.viewy, self.viewx)
-            stdscr.refresh()
-            audio.play("weapons/trigger.aif", volume=0.2)
+    def handle_interaction(self, key, stdscr):
 
         ####################################
         # updating
@@ -353,7 +360,7 @@ class Grid2D:
             else:
                 # it's an obstacle!  AKA gameobject
                 if self.player.prefs.auto_attack and self.player.weapon:
-                    self.player.weapon.attack_NODE(self.nodes[(x,y)])
+                    self.player.weapon.attack_NODE(self.nodes[(x,y)], stdscr, self, (x,y))
 
         elif key in map(ord, 'sS'):
             # toggle sneak/walk/sprint
@@ -372,6 +379,10 @@ class Grid2D:
             if self.player_stand_state < 2:
                 self.player_stand_state += 1
                 audio.play('movement/changing/nonprone.aif')
+
+        stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
+
+    def determine_visible(self):
 
         ####################################
         # rendering
@@ -399,20 +410,67 @@ class Grid2D:
 
         visible &= _player_potential_relative
 
-        # # if we're in smoke, show adjacents
-        # if visible == set( [(0,0)] ):
-        #     visible.update( [(1,0), (-1,0), (0,-1), (0,1)] )
+        # if we're in smoke, show adjacents
+        if visible == set( [(0,0)] ):
+            visible.update( [(1,0), (-1,0), (0,-1), (0,1)] )
+
+        return visible
+
+    # @profile
+    # @log.logwrap
+    def tick(self, key, stdscr):
+        import time
+
+        # TODO: \/
+        stdscr.erase() # should erase() be INSIDE phase 2?  need a better understanding.
+        self.tick_phase_1(key, stdscr)
+        self.tick_phase_2(stdscr)
+        while self.visual_events:
+            stdscr.refresh()
+            self.tick_phase_2(stdscr) # this must decrement visual events
+            time.sleep(0.05) # <--- need to standardize this wait time!
+            # TODO: ^
+        self.tick_phase_3()
+
+    def tick_phase_1(self, key, stdscr):
+
+        ####################################
+        # visual events pause interaction
+
+        if key == curses.KEY_RESIZE:
+            self.update_viewport(stdscr)
+            curses.resize_term(self.viewy, self.viewx)
+            stdscr.refresh()
+            audio.play("weapons/trigger.aif", volume=0.2)
+
+        elif not self.visual_events:
+            self.handle_interaction(key, stdscr)
 
         # player
         self.nodes[self.player.position()].set_has_player()
 
-        self.render(visible, stdscr)
+    def tick_phase_2(self, stdscr):
+        # RENDERING
+        
+        ####################################
+        # META-RENDERING
+
+        # background
+        self.render(self.determine_visible(), stdscr)
+
+        # exceptions
+        for event in self.visual_events:
+            event.step()
+        self.visual_events = [event for event in self.visual_events if not event.dead]
+
+        # foreground
         stdscr.border()
         stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
         stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
         stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
         stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
-        stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
+
+    def tick_phase_3(self):
 
         self.reset() # <--- improve this
 
@@ -431,6 +489,7 @@ class Grid2D:
         try:
             while True:
                 # input
+                curses.flushinp()
                 key = stdscr.getch()
 
                 if key == 113: # q

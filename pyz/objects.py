@@ -2,6 +2,8 @@
 from pyz import audio
 from pyz import utils
 from pyz.vision import sightradius
+from pyz import events
+from pyz import log
 
 ####################################
 
@@ -10,7 +12,7 @@ CENTER = (0,0)
 class Object(object):
     """
     An Object is any physically-interactive
-    *thing* in the game world.
+    *thing* in the game world (that takes up one space).
     """
 
     record = []
@@ -69,7 +71,7 @@ class Lantern(Item, sightradius.SightRadius2D):
     def age(self):
         if not self.can_age:
             return
-        
+
         if not self.ticks:
             self.ticks = self.lifetick
             self.radius = max(0, self.radius - 1)
@@ -96,16 +98,13 @@ class Weapon(Item):
         self.damage = damage
         self.damagetype = damagetype # damagetype vs beats??
 
-    def attack_NODE(self, node):
+    @log.logwrap
+    def attack_NODE(self, node, stdscr, grid, coord):
         # damage conditional on material?
         if node.material in self.beats:
-            try:
-                audio.play_attack(self.typ, node.material)
-                node.damage(self.damage)
-            except Exception as e:
-                import os
-                # LOL:
-                os.system("""osascript -e 'tell application "System Events" to display dialog "{}"'""".format(e))
+            audio.play_attack(self.typ, node.material)
+            node.damage(self.damage)
+            grid.visual_events.append(events.GenericInteractVisualEvent(stdscr, grid, coord))
 
 WEAPONS = {}
 WEAPONS['axe1'] = Weapon('axe', ['cloth', 'wood'], 1, 'slicing')
