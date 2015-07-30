@@ -7,6 +7,9 @@ def coords_add(*coords):
 def coord_invert(coord):
     return tuple(map(lambda n:-n, coord))
 
+def coord_diff(a, b):
+    return map(lambda p: p[0]-p[1], zip(*[a,b]))
+
 ####################################
 
 def remaining(potential, blocked, block_table):
@@ -14,6 +17,11 @@ def remaining(potential, blocked, block_table):
     return potential - set().union(*(block_table.get(coord, []) for coord in blocked))
 
 def fast_hemiarc(arc_coords, cutoff, shellcache):
+    """
+    Used for arc-tracing!
+
+    Returns second half  (outer half).
+    """
 
     if cutoff < float(shellcache.radius)/2:
         return arc_coords - shellcache.coords_before(cutoff+1)

@@ -3,8 +3,13 @@ import math
 
 from pyz.vision import shell_tools
 from pyz import settings
+from pyz import utils
 
 ####################################
+
+def relative_angle(c1, c2):
+    rel = utils.coord_diff(c2, c1)
+    return convert_2D_coord_to_angle(rel)
 
 def convert_2D_coord_to_angle(coord):
     return math.degrees(math.atan2(*coord[::-1])) % 360

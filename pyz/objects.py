@@ -2,6 +2,9 @@
 from pyz import audio
 from pyz import utils
 from pyz.vision import sightradius
+from pyz.vision import arc_tools
+from pyz import events
+from pyz import log
 
 ####################################
 
@@ -10,7 +13,7 @@ CENTER = (0,0)
 class Object(object):
     """
     An Object is any physically-interactive
-    *thing* in the game world.
+    *thing* in the game world (that takes up one space).
     """
 
     record = []
@@ -29,7 +32,7 @@ class Object(object):
     def set_position(self, coord):
         self._position = coord
 
-    def age(self):
+    def age(self, grid, stdscr):
         pass
 
 
@@ -47,7 +50,7 @@ class Item(Object):
         Object.__init__(self, parent, position)
         Item.record.append(self)
 
-    def age(self):
+    def age(self, grid, stdscr):
         pass
 
 # TODO
@@ -63,18 +66,16 @@ class Lantern(Item, sightradius.SightRadius2D):
         self.lifetick = 10
         self.ticks = self.lifetick
 
-    def visible_coords_absolute(self, blocked):
-        return utils.visible_coords_absolute_2D(self.position, self, blocked)
-
-    def age(self):
+    def age(self, grid, stdscr):
         if not self.can_age:
             return
-        
+
         if not self.ticks:
             self.ticks = self.lifetick
             self.radius = max(0, self.radius - 1)
         else:
             self.ticks -= 1
+
 
 class Flashlight(Item, sightradius.ArcLight2D):
 
@@ -82,8 +83,50 @@ class Flashlight(Item, sightradius.ArcLight2D):
         Item.__init__(self, parent, position)
         sightradius.ArcLight2D.__init__(self, radius, angle, arc_radius) # default shellcache/blocktable/angletable
 
-    def visible_coords_absolute(self, blocked):
-        return utils.visible_coords_absolute_2D(self.position, self, blocked)
+        self.on = True
+        self.focus = (20,30)
+        self.modes = ['static', 'facing', 'focus']
+        self.mode = 0
+        self.focus_threshold = 5
+        self.focus_speed = 7
+
+    def visible_coords(self, blocked_relative):
+        if not self.on:
+            return set()
+        else:
+            return sightradius.ArcLight2D.visible_coords(self, blocked_relative)
+
+    def toggle(self):
+        audio.play("items/flashlight_toggle.m4a", volume=2.0)
+        self.on = not self.on
+
+    def toggle_mode(self, grid, stdscr):
+        self.mode = (self.mode + 1) % len(self.modes)
+        # if self.modes[self.mode] == 'focus':
+        #     self.update(grid, stdscr)
+
+    def target_angle_diff(self):
+        return int(round(arc_tools.relative_angle(self.position(), self.focus)))
+
+    def update(self, grid, stdscr):
+        target = self.target_angle_diff()
+        grid.visual_events_bottom.append(events.FacingEvent(grid, stdscr, None, self, self.angle, target, self.focus_speed))
+    
+    def update_direction(self, direction):
+        if direction == (1,0):
+            self.angle = 0
+        elif direction == (0,1):
+            self.angle = 90
+        elif direction == (-1,0):
+            self.angle = 180
+        elif direction == (0,-1):
+            self.angle = 270
+
+    def age(self, grid, stdscr):
+        if abs(self.target_angle_diff() - self.angle) > self.focus_threshold:
+            # import os
+            # os.system('say far')
+            self.update(grid, stdscr)
 
 
 class Weapon(Item):
@@ -96,16 +139,13 @@ class Weapon(Item):
         self.damage = damage
         self.damagetype = damagetype # damagetype vs beats??
 
-    def attack_NODE(self, node):
+    @log.logwrap
+    def attack_NODE(self, node, grid, stdscr, coord):
         # damage conditional on material?
         if node.material in self.beats:
-            try:
-                audio.play_attack(self.typ, node.material)
-                node.damage(self.damage)
-            except Exception as e:
-                import os
-                # LOL:
-                os.system("""osascript -e 'tell application "System Events" to display dialog "{}"'""".format(e))
+            audio.play_attack(self.typ, node.material)
+            node.damage(self.damage)
+            grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, stdscr, coord))
 
 WEAPONS = {}
 WEAPONS['axe1'] = Weapon('axe', ['cloth', 'wood'], 1, 'slicing')

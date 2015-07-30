@@ -4,6 +4,7 @@ from pyz.vision.rays import arctracing
 from pyz.vision import arc_tools
 from pyz.vision import shell_tools
 from pyz import utils
+from pyz import log
 # from pyz import settings
 
 ####################################
@@ -33,11 +34,15 @@ class ArcLight2D(SightRadius2D):
         self.arc_radius = arc_radius
         self.angletable2D = angletable2D
 
+    @log.logwrap
     def potentially_illuminated(self):
-        return utils.fast_hemiarc(self.angletable2D.around(self.angle, self.arc_radius), self.radius, self.shellcache)
+        potential = self.angletable2D.around(self.angle, self.arc_radius) | set([(0,0)])
+        return potential - utils.fast_hemiarc(potential, self.radius, self.shellcache)
 
+    @log.logwrap
     def visible_coords(self, blocked_relative):
-        return utils.remaining(self.potentially_illuminated(), blocked_relative, self.blocktable)
+        # return utils.remaining(self.potentially_illuminated(), blocked_relative, self.blocktable)
+        return self.potentially_illuminated()
 
     def set_angle(self, angle):
         self.angle = angle
