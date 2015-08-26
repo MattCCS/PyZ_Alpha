@@ -6,16 +6,14 @@ from pyz.curses_prep import curses
 from pyz.gamedata import json_parser
 from pyz import audio
 from pyz import gameworld
-from pyz.vision import shell_tools
 from pyz.vision.trees import fasttree
 
 from pyz import log # <3
-from pyz.gamedata import json_parser
 
 ####################################
 # GLOBALS
 
-RADIUS = 16 # doesn't include center
+RADIUS = 16 # TODO:  doesn't include center (?)
 DIMENSIONS = 2
 X = 80 # X * 2 - 1 == screen width
 Y = 50

@@ -1,0 +1,7 @@
+DONE:
++ removed old "has_player" flag
+
+TODO:
+- improve color system (combine)
+- fix resizing continuing game bug
+- fix centering bug
