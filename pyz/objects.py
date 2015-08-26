@@ -10,9 +10,9 @@ from pyz import log
 
 CENTER = (0,0)
 
-class Object(object):
+class GameObject(object):
     """
-    An Object is any physically-interactive
+    A GameObject is any physically-interactive
     *thing* in the game world (that takes up one space).
     """
 
@@ -21,7 +21,7 @@ class Object(object):
     def __init__(self, parent, position=CENTER):
         self.parent = parent
         self._position = position # relative to parent, if any
-        Object.record.append(self)
+        GameObject.record.append(self)
 
     def position(self):
         if not self.parent:
@@ -36,9 +36,9 @@ class Object(object):
         pass
 
 
-class Item(Object):
+class Item(GameObject):
     """
-    An Item is a subset of Object -- it is a
+    An Item is a subset of GameObject -- it is a
     physically-interactive *thing* because we can
     place it/throw it/inspect it/etc., but it is
     also something that can be held/used/put in inventory.
@@ -47,7 +47,7 @@ class Item(Object):
     record = []
     
     def __init__(self, parent, position=CENTER):
-        Object.__init__(self, parent, position)
+        GameObject.__init__(self, parent, position)
         Item.record.append(self)
 
     def age(self, grid, stdscr):
@@ -57,6 +57,9 @@ class Item(Object):
 # NOTE: don't call super if you care what is called/when/with what; call __init__ instead
 
 class Lantern(Item, sightradius.SightRadius2D):
+    """
+    Represets a radial light source.
+    """
 
     def __init__(self, radius, parent, position=CENTER):
         Item.__init__(self, parent, position)
@@ -78,6 +81,9 @@ class Lantern(Item, sightradius.SightRadius2D):
 
 
 class Flashlight(Item, sightradius.ArcLight2D):
+    """
+    Represets a directed radial light source.
+    """
 
     def __init__(self, radius, angle, arc_length, parent, position=CENTER):
         Item.__init__(self, parent, position)
@@ -97,7 +103,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
             return sightradius.ArcLight2D.visible_coords(self, blocked_relative)
 
     def toggle(self):
-        audio.play("items/flashlight_toggle.m4a", volume=2.0)
+        audio.play("items/flashlight_toggle.m4a", volume=3.0)
         self.on = not self.on
 
     def toggle_mode(self, grid, stdscr):

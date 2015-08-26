@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 import random
+import time
 
 from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
@@ -8,6 +9,7 @@ from pyz.curses_prep import curses
 from pyz import audio
 from pyz import player
 from pyz import objects
+from pyz import data
 from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
 from pyz import utils
@@ -16,10 +18,10 @@ from pyz import utils
 # SETTING UP THE LOGGER
 import os
 from pyz import log # <3
-# ROOTPATH = os.path.splitext(__file__)[0]
-# LOGPATH = "{0}.log".format(ROOTPATH)
-# LOGGER = log.get(__name__, path=LOGPATH)
-# LOGGER.info("----------BEGIN----------")
+ROOTPATH = os.path.splitext(__file__)[0]
+LOGPATH = "{0}.log".format(ROOTPATH)
+LOGGER = log.get(__name__, path=LOGPATH)
+LOGGER.info("----------BEGIN----------")
 
 ####################################
 
@@ -88,56 +90,29 @@ class Node2D(object):
         self.old_color = 0
         self.damageable = False
         self.health = 0
+        self.objects = []
         self.set_dirt()
 
     def reset(self):
         self.unset_has_player()
 
     ####################################
-    # permanent?
+    # attribute assignment
+
+    def set(self, name):
+        data.reset(self, 'node', name)
 
     def set_tree(self):
-        self.name = 'tree'
-        self.passable = False
-        self.transparent = False
-        self.damageable = True
-        self.appearance = 'O'
-        self.color = 5
-        self.old_color = 5
-        self.material = 'wood'
-        self.health = random.randint(8,15)
+        self.set('tree')
 
     def set_smoke(self):
-        self.name = 'smoke'
-        self.passable = True
-        self.transparent = False
-        self.damageable = False
-        self.appearance = random.choice("%&")
-        # same material?
-        self.material = 'dirt' # sound.
-        self.color = 6
-        self.old_color = 6
+        self.set('smoke')
 
     def set_grass(self):
-        self.name = 'grass'
-        self.passable = True
-        self.transparent = True
-        self.damageable = False
-        self.appearance = random.choice(",'\"`") # text
-        self.material = 'grass'                  # sound
-        self.color = random.choice([2,3])        # color
-        self.old_color = self.color
+        self.set('grass')
 
     def set_dirt(self):
-        self.name = 'dirt/clay'
-        self.passable = True
-        self.transparent = True
-        self.material = 'dirt'
-        self.appearance = '.'
-        self.old_color = random.choice([7,7,7,7,7,5])
-        self.color = self.old_color # default color
-        self.damageable = False
-        self.health = 0
+        self.set('dirt')
 
     ####################################
     # temporary
@@ -160,6 +135,8 @@ class Node2D(object):
                 self.die()
 
     def die(self):
+        if self.name == 'tree':
+            audio.play_random("foley/tree", volume=0.5)
         self.set_dirt()
         self.parentgrid.blocked.discard(self.coord)
 
@@ -172,6 +149,8 @@ class Node2D(object):
         return tup2bin(map(int, self.code()))
 
     def render(self, stdscr, x, y):
+        if self.name == 'tree':
+            LOGGER.debug('tree color -- {}'.format(self.color))
 
         if self.name == 'smoke':
             self.appearance = random.choice("%&")
@@ -181,10 +160,14 @@ class Node2D(object):
         if self.has_player:
             char = Node2D.PLAYER
 
-        if not self.reverse_video:
-            stdscr.addstr(y, x, char.encode(CODE), curses.color_pair(self.color))
-        else:
-            stdscr.addstr(y, x, char.encode(CODE), curses.A_REVERSE)
+        try:
+            if not self.reverse_video:
+                stdscr.addstr(y, x, char.encode(CODE), curses.color_pair(self.color))
+            else:
+                stdscr.addstr(y, x, char.encode(CODE), curses.A_REVERSE)
+        except curses.error:
+            pass # some out-of-bounds issue.
+            # TODO: investigate!
 
 ####################################
 
@@ -400,6 +383,7 @@ class Grid2D:
             if key == ord('f'):
                 # toggle flashlight
                 self.player.flashlight.toggle()
+                time.sleep(0.2)
 
             elif key == ord('m'):
                 self.player.flashlight.toggle_mode(self, stdscr)
@@ -466,7 +450,7 @@ class Grid2D:
         # say('end')
 
         # say('start age')
-        for obj in objects.Object.record:
+        for obj in objects.GameObject.record:
             obj.age(self, stdscr)
         # say('end')
 

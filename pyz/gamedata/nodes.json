@@ -1,0 +1,97 @@
+{
+    "*":
+    {
+        "concealment"   : 0,
+        "health"        : 0
+    },
+
+    "grass":
+    {
+
+        "attributes"    : ["passable", "transparent"],
+        "concealment"   : 3,
+        "appearances"    : ",'\"`",
+        "colors"         : ["green", "dark green"],
+        "material"      : "grass",
+        "spawns":
+        {
+            "exclusive": {},
+            "any":
+            {
+                "%": 100,
+                "gravel" : 1,
+                "talc": 0,
+                "flint": 1,
+                "stone": 5,
+                "heavy stone": 1
+            }
+        }
+    },
+
+    "tall grass":
+    {
+        "attributes"    : ["passable", "transparent"],
+        "concealment"   : 15,
+        "spawns":
+        {
+            "exclusive": {},
+            "any":
+            {
+                "%"             : 100,
+                "gravel"        : 1,
+                "talc"          : 0,
+                "flint"         : 1,
+                "stone"         : 5,
+                "heavy stone"   : 1
+            }
+        }
+    },
+
+    "dirt":
+    {
+        "attributes"    : ["passable", "transparent"],
+        "appearances"    : ".",
+        "colors"         : ["brown", "maroon", "maroon", "maroon", "maroon"],
+        "material"      : "dirt",
+        "spawns":
+        {
+            "exclusive": {},
+            "any":
+            {
+                "%"             : 100,
+                "gravel"        : 5,
+                "talc"          : 4,
+                "flint"         : 6,
+                "stone"         : 12,
+                "heavy stone"   : 3
+            }
+        }
+    },
+
+    "tree":
+    {
+        "attributes"    : ["damageable"],
+        "appearances"    : "O",
+        "colors"         : ["brown"],
+        "material"      : "wood",
+        "health"        : 10,
+        "spawns":
+        {
+            "exclusive": {},
+            "any":
+            {
+                "%"             : 100,
+                "wooden log"    : 100
+            }
+        }
+    },
+
+    "smoke":
+    {
+        "attributes"    : ["passable"],
+        "appearances"    : "%&",
+        "colors"         : ["gray"],
+        "material"      : "grass"
+    }
+
+}

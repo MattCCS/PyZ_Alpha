@@ -3,12 +3,14 @@ import random
 
 from pyz.curses_prep import curses
 
+from pyz.gamedata import json_parser
 from pyz import audio
 from pyz import gameworld
 from pyz.vision import shell_tools
 from pyz.vision.trees import fasttree
 
 from pyz import log # <3
+from pyz.gamedata import json_parser
 
 ####################################
 # GLOBALS
@@ -95,6 +97,7 @@ def mainwrapped(stdscr):
 
 @log.logwrap
 def main():
+    json_parser.load_all()
     curses.wrapper(mainwrapped)
 
 

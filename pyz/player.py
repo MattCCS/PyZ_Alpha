@@ -1,10 +1,10 @@
 
 from pyz import objects
 
-class Player(objects.Object):
+class Player(objects.GameObject):
 
     def __init__(self, parent=None, position=(20,20)):
-        objects.Object.__init__(self, parent, position)
+        objects.GameObject.__init__(self, parent, position)
 
         self.weapon = None
 

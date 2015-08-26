@@ -77,13 +77,13 @@ def _play(path, volume=1.0):
 def play(relpath, volume=1.0):
     _play(absolutize(relpath), volume=volume)
 
-def play_material(material_dir, volume=1.0):
+def play_random(material_dir, volume=1.0):
     fname = random_file_from_dir(absolutize(material_dir))
     play(os.path.join(material_dir, fname), volume)
 
 def play_movement(stand_state, sneakwalksprint, material):
     # material should refer to directory -- we choose randomly from there
-    play_material(os.path.join("movement", STAND_DICT[stand_state], material), volume=SPEED_DICT[sneakwalksprint])
+    play_random(os.path.join("movement", STAND_DICT[stand_state], material), volume=SPEED_DICT[sneakwalksprint])
 
 def play_attack(weapon, material, volume=1.0):
     relpath = "weapons/{}/{}".format(weapon, material)

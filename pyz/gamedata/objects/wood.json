@@ -1,0 +1,15 @@
+{
+    "*":
+    {
+        "material": "wood"
+    },
+
+    "wooden log":
+    {
+        "size": 100,
+        "hardness": 2,
+        "mass": 3500,
+        "attributes": ["sharpenable", "damageable"]
+    }
+
+}

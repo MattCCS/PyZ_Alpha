@@ -1,6 +1,9 @@
 
 from pyz import log # <3
 
+####################################
+# COORD UTILS
+
 def coords_add(*coords):
     return tuple(map(sum, zip(*coords)))
 
@@ -11,6 +14,10 @@ def coord_diff(a, b):
     return tuple(map(lambda p: p[0]-p[1], zip(*[a,b])))
 
 ####################################
+# 
+
+####################################
+# FAST SET OPERATIONS
 
 def remaining(potential, blocked, block_table):
     # crazy fast.

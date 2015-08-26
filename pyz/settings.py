@@ -3,6 +3,17 @@ import os
 
 THIS_FILE = os.path.realpath(__file__)
 PROJECT_PATH = os.path.dirname(THIS_FILE)
+GAMEDATA_PATH = os.path.join(PROJECT_PATH, "gamedata")
+
+####################################
+# GAMEDATA
+
+def absolutize_gamedata(path):
+    return os.path.join(GAMEDATA_PATH, path)
+
+ATTRIBUTES_PATH = absolutize_gamedata("attributes.json")
+PARAMETERS_PATH = absolutize_gamedata("parameters.json")
+LOAD_ORDER      = absolutize_gamedata("load_order.txt")
 
 ####################################
 

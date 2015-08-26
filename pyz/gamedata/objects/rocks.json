@@ -1,0 +1,43 @@
+{
+    "*":
+    {
+        "material": "rock"
+    },
+
+    "stone":
+    {
+        "size": 10,
+        "hardness": 5,
+        "mass": 350
+    },
+
+    "heavy stone":
+    {
+        "size": 12,
+        "hardness": 5,
+        "mass": 500
+    },
+
+    "talc":
+    {
+        "size": 10,
+        "hardness": 1,
+        "mass": 50
+    },
+
+    "flint":
+    {
+        "size": 10,
+        "hardness": 7,
+        "mass": 350,
+        "attributes": ["knappable"]
+    },
+
+    "gravel":
+    {
+        "size": 5,
+        "hardness": 5,
+        "mass": 150
+    }
+
+}
