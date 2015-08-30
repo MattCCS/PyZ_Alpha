@@ -507,6 +507,9 @@ class Grid2D:
         # player
         self.render_player(stdscr)
 
+        # player
+        self.render_player(stdscr)
+
         # exceptions
         for event in self.visual_events_top:
             event.step()
@@ -542,7 +545,6 @@ class Grid2D:
         self.determine_visible()
         self.render(self.visible, stdscr)
         self.render_player(stdscr)
-
         stdscr.refresh()
 
     def play(self, stdscr):
