@@ -6,4 +6,18 @@
 # NOTE:  always run me as: "./run"
 ####################################
 
-python -B -m pyz.main # no bytecode
+if [ $# -eq 0 ]; then
+    python -B -m pyz.main
+fi
+
+if [ $# -eq 1 ] && [ $1 -eq 1 ]; then
+    python -B -m pyz.main 1> stdout.log
+fi
+
+if [ $# -eq 1 ] && [ $1 -eq 2 ]; then
+    python -B -m pyz.main 2> stderr.log
+fi
+
+if [ $# -eq 1 ] && [ $1 -eq 3 ]; then
+    python -B -m pyz.main 1> stdout.log 2> stderr.log
+fi

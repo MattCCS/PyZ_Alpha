@@ -1,0 +1,10 @@
+DONE:
++ removed old "has_player" flag
++ improved color system (combined/dynamized)
+
+TODO:
+- add side windows
+    - make game rendering PANEL-based
+    - window manager?
+- fix resizing continuing game bug
+- fix centering bug

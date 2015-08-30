@@ -10,8 +10,8 @@
 
         "attributes"    : ["passable", "transparent"],
         "concealment"   : 3,
-        "appearances"    : ",'\"`",
-        "colors"         : ["green", "dark green"],
+        "appearances"   : ",'\"`",
+        "colors"        : ["green", "dark green"],
         "material"      : "grass",
         "spawns":
         {
@@ -50,8 +50,8 @@
     "dirt":
     {
         "attributes"    : ["passable", "transparent"],
-        "appearances"    : ".",
-        "colors"         : ["brown", "maroon", "maroon", "maroon", "maroon"],
+        "appearances"   : ".",
+        "colors"        : ["brown", "maroon", "maroon", "maroon", "maroon"],
         "material"      : "dirt",
         "spawns":
         {
@@ -71,8 +71,8 @@
     "tree":
     {
         "attributes"    : ["damageable"],
-        "appearances"    : "O",
-        "colors"         : ["brown"],
+        "appearances"   : "O",
+        "colors"        : ["brown"],
         "material"      : "wood",
         "health"        : 10,
         "spawns":
@@ -89,8 +89,8 @@
     "smoke":
     {
         "attributes"    : ["passable"],
-        "appearances"    : "%&",
-        "colors"         : ["gray"],
+        "appearances"   : "%&",
+        "colors"        : ["gray"],
         "material"      : "grass"
     }
 

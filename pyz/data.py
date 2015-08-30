@@ -49,7 +49,8 @@ class DataObject(object):
         for (key, val) in vars(self).items():
             setattr(obj, key, val)
         if "colors" in vars(self):
-            obj.color = colors.lookup(random.choice(self.colors))
+            # obj.color = colors.lookup(random.choice(self.colors))
+            obj.color = random.choice(self.colors)
             obj.old_color = obj.color
         if "appearances" in vars(self):
             obj.appearance = random.choice(self.appearances)

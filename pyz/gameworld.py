@@ -5,6 +5,7 @@ import time
 
 from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
+from pyz import colors
 
 from pyz import audio
 from pyz import player
@@ -13,6 +14,7 @@ from pyz import data
 from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
 from pyz import utils
+from pyz import windows
 
 ####################################
 # SETTING UP THE LOGGER
@@ -84,17 +86,18 @@ class Node2D(object):
 
         self.name = '---'
         self.passable, self.transparent = code
-        self.has_player = False
+        # self.has_player = False
         self.material = None
         self.appearance = None
+        self.color = 0
         self.old_color = 0
         self.damageable = False
         self.health = 0
         self.objects = []
         self.set_dirt()
 
-    def reset(self):
-        self.unset_has_player()
+    # def reset(self):
+    #     self.unset_has_player()
 
     ####################################
     # attribute assignment
@@ -113,18 +116,6 @@ class Node2D(object):
 
     def set_dirt(self):
         self.set('dirt')
-
-    ####################################
-    # temporary
-
-    def set_has_player(self):
-        self.has_player = True
-        self.old_color = self.color
-        self.color = 4
-
-    def unset_has_player(self):
-        self.has_player = False
-        self.color = self.old_color
 
     ####################################
 
@@ -149,20 +140,15 @@ class Node2D(object):
         return tup2bin(map(int, self.code()))
 
     def render(self, stdscr, x, y):
-        if self.name == 'tree':
-            LOGGER.debug('tree color -- {}'.format(self.color))
 
         if self.name == 'smoke':
             self.appearance = random.choice("%&")
 
         char = self.appearance if self.appearance else Node2D.ERROR
 
-        if self.has_player:
-            char = Node2D.PLAYER
-
         try:
             if not self.reverse_video:
-                stdscr.addstr(y, x, char.encode(CODE), curses.color_pair(self.color))
+                stdscr.addstr(y, x, char.encode(CODE), colors.fg_bg_to_index(self.color))
             else:
                 stdscr.addstr(y, x, char.encode(CODE), curses.A_REVERSE)
         except curses.error:
@@ -207,7 +193,9 @@ def key_to_coord(key):
 
 class Grid2D:
 
-    def __init__(self, x, y, player_view, blocked_set):
+    def __init__(self, stdscr, x, y, blocked_set):
+
+        self.stdscr = stdscr
         
         self.x = x
         self.y = y
@@ -219,6 +207,11 @@ class Grid2D:
         self.blocked = blocked_set
         for coord in blocked_set:
             self.nodes[coord].set_tree()
+
+        self.visible = set()
+
+        # windows
+        self.TEST = windows.Renderable(self.stdscr)
 
         # events
         self.visual_events_top    = []
@@ -254,25 +247,25 @@ class Grid2D:
         self.player.weapon = objects.WEAPONS['axe1']
         self.player_sneakwalksprint = 1
         self.player_stand_state = 2
-        # self.player.lantern = objects.Lantern(16, self.player)
-        # self.player.lantern.can_age = True
+        self.player.lantern = objects.Lantern(16, self.player)
+        self.player.lantern.can_age = True
         self.player.flashlight = objects.Flashlight(24, 90, 15, self.player)
 
         lantern_coord = (17,9)
-        self.lightsources = [self.player.flashlight, objects.Lantern(8, None, lantern_coord)]
+        self.lightsources = [self.player.lantern, objects.Lantern(8, None, lantern_coord)]
         self.nodes[lantern_coord].set_dirt()
         self.nodes[lantern_coord].appearance = 'X'
-        self.nodes[lantern_coord].color = 4
-        self.nodes[lantern_coord].old_color = 4
+        self.nodes[lantern_coord].color = "yellow"
+        self.nodes[lantern_coord].old_color = "yellow"
 
-    def reset(self, coords=None):
-        if coords is None:
-            nodes = self.nodes.itervalues()
-        else:
-            nodes = (self.nodes[coord] for coord in coords)
+    # def reset(self, coords=None):
+    #     if coords is None:
+    #         nodes = self.nodes.itervalues()
+    #     else:
+    #         nodes = (self.nodes[coord] for coord in coords)
 
-        for node in nodes:
-            node.reset()
+    #     for node in nodes:
+    #         node.reset()
 
     def frame_coords_2D(self):
         (px, py) = self.player.position()
@@ -287,12 +280,20 @@ class Grid2D:
         for y in xrange(py + self.y/2 - 1, py - self.y/2 - 1, -1):
             yield [(x,y) for x in xrange(px-self.x, px+self.x)]
 
+    def x_to_screen(self, x, px, BORDER_OFFSET_X=1, spacing=2):
+        return x*spacing - px*spacing + BORDER_OFFSET_X + self.viewx/2
+
+    def y_to_screen(self, y, py, BORDER_OFFSET_Y=1):
+        return self.viewy/2 - y + py - BORDER_OFFSET_Y - 1
+
+    def xy_to_screen(self, coord, ppos, spacing=2, BORDER_OFFSET_X=1, BORDER_OFFSET_Y=1):
+        (x,y) = coord
+        (px,py) = ppos
+        fx = self.x_to_screen(x, px, BORDER_OFFSET_X=BORDER_OFFSET_X, spacing=2)
+        fy = self.y_to_screen(y, py, BORDER_OFFSET_Y=BORDER_OFFSET_Y)
+        return (fx, fy)
 
     def render(self, visible, stdscr):
-
-        SPACING = 2
-        BORDER_OFFSET_X = 1
-        BORDER_OFFSET_Y = 1
 
         (px,py) = self.player.position()
 
@@ -301,9 +302,12 @@ class Grid2D:
             try:
                 for (x,y) in row:
 
+                    fx = self.x_to_screen(x, px)
+                    fy = self.y_to_screen(y, py)
+
                     if not (x, y) in self.nodes:
                         try:
-                            stdscr.addstr(self.viewy/2-y-1-BORDER_OFFSET_Y+py, x*SPACING+BORDER_OFFSET_X-px*SPACING+self.viewx/2, u'█'.encode(CODE))
+                            stdscr.addstr(fy, fx, u'█'.encode(CODE), colors.fg_bg_to_index("white"))
                         except curses.error:
                             pass
                         # pass
@@ -317,8 +321,7 @@ class Grid2D:
                             stdscr.addstr(10, 0, " "*30)
                             stdscr.addstr(9, 0, "x, self.x, px, px*2: {}/{}/{}/{}".format(x, self.x, px, px*2))
                             stdscr.addstr(10, 0, "y, self.y, self.viewy: {}/{}/{}".format(y, self.y, self.viewy))
-                            # self.nodes[(x,y)].render(stdscr, x*SPACING+BORDER_OFFSET_X+self.x-px*2, final_y+BORDER_OFFSET_Y+self.y/2+py-self.viewy)
-                            self.nodes[(x,y)].render(stdscr, x*SPACING+BORDER_OFFSET_X-px*SPACING+self.viewx/2, self.viewy/2-y-1-BORDER_OFFSET_Y+py)
+                            self.nodes[(x,y)].render(stdscr, fx, fy)
                             # self.nodes[(x+self.x/2,y+self.y/2)].render(stdscr, x*2, y)
                         except KeyError:
                             pass # node out of bounds
@@ -386,7 +389,7 @@ class Grid2D:
                 time.sleep(0.2)
 
             elif key == ord('m'):
-                self.player.flashlight.toggle_mode(self, stdscr)
+                self.player.flashlight.toggle_mode()
 
             self.player.flashlight.update_direction(key_to_coord(key))
 
@@ -424,7 +427,7 @@ class Grid2D:
         if visible == set( [(0,0)] ):
             visible.update( [(1,0), (-1,0), (0,-1), (0,1)] )
 
-        return visible
+        self.visible = visible
 
     def has_visual_events(self):
         return bool(self.visual_events_top) or bool(self.visual_events_bottom)
@@ -445,47 +448,27 @@ class Grid2D:
 
         # TODO: \/
         stdscr.erase() # should erase() be INSIDE phase 2?  need a better understanding.
-        # say('start phase 1')
         self.tick_phase_1(key, stdscr)
-        # say('end')
 
-        # say('start age')
         for obj in objects.GameObject.record:
             obj.age(self, stdscr)
-        # say('end')
 
-        say('start phase 2')
         self.tick_phase_2(stdscr)
-        say('end')
 
-        say('start refresh')
         stdscr.refresh()
-        say('end')
 
         if self.has_visual_events():
             while self.has_visual_events():
-                say('cycle')
 
-                # say('start sleep')
                 time.sleep(self.visual_requested_wait()) # <--- need to standardize this wait time!  or dynamicize it??
-                # say('end sleep')
 
-                say('start clear')
                 stdscr.erase()
-                say('end')
 
-                say('start phase 2')
                 self.tick_phase_2(stdscr) # this *must* decrement all visual events.
-                say('end')
 
-                say('start refresh')
                 stdscr.refresh()
-                say('end')
 
-        say('start phase 3')
         self.tick_phase_3()
-        say('end')
-        # os.system('say done')
 
     def tick_phase_1(self, key, stdscr):
 
@@ -504,7 +487,7 @@ class Grid2D:
             self.handle_interaction(key, stdscr)
 
         # player
-        self.nodes[self.player.position()].set_has_player()
+        # self.nodes[self.player.position()].set_has_player()
 
     def tick_phase_2(self, stdscr):
         # RENDERING
@@ -518,7 +501,11 @@ class Grid2D:
         self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
 
         # background
-        self.render(self.determine_visible(), stdscr)
+        self.determine_visible()
+        self.render(self.visible, stdscr)
+
+        # player
+        self.render_player(stdscr)
 
         # exceptions
         for event in self.visual_events_top:
@@ -535,8 +522,28 @@ class Grid2D:
 
     def tick_phase_3(self):
 
-        self.reset() # <--- improve this
+        # self.reset() # <--- improve this
+        pass
 
+    def render_player(self, stdscr):
+        p = self.player.position()
+        if (0,0) in self.visible:
+            (fx,fy) = self.xy_to_screen(p, p)
+            stdscr.addstr(fy, fx, Node2D.PLAYER, colors.fg_bg_to_index("yellow")) # TODO: NOT 4 !!!
+
+    def resize(self, stdscr):
+        stdscr.erase()
+
+        self.update_viewport(stdscr)
+        curses.resize_term(self.viewy, self.viewx)
+        stdscr.refresh()
+        audio.play("weapons/trigger.aif", volume=0.2)
+
+        self.determine_visible()
+        self.render(self.visible, stdscr)
+        self.render_player(stdscr)
+
+        stdscr.refresh()
 
     def play(self, stdscr):
 
@@ -554,6 +561,10 @@ class Grid2D:
 
                 if key == 113: # q
                     break
+
+                if key == curses.KEY_RESIZE:
+                    self.resize(stdscr)
+                    continue
 
                 # tick
                 self.tick(key, stdscr)

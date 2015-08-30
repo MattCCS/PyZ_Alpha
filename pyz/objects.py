@@ -10,6 +10,8 @@ from pyz import log
 
 CENTER = (0,0)
 
+class NoSpaceException(Exception): pass
+
 class GameObject(object):
     """
     A GameObject is any physically-interactive
@@ -106,11 +108,9 @@ class Flashlight(Item, sightradius.ArcLight2D):
         audio.play("items/flashlight_toggle.m4a", volume=3.0)
         self.on = not self.on
 
-    def toggle_mode(self, grid, stdscr):
+    def toggle_mode(self):
         audio.play("weapons/trigger.aif", volume=0.2)
         self.mode = (self.mode + 1) % len(self.modes)
-        # if self.modes[self.mode] == 'focus':
-        #     self.update(grid, stdscr)
 
     def is_focusing(self):
         return self.modes[self.mode] == 'focus'
@@ -143,6 +143,31 @@ class Flashlight(Item, sightradius.ArcLight2D):
     def age(self, grid, stdscr):
         if self.on and self.facing_away() and self.is_focusing():
             self.update(grid, stdscr)
+
+
+class Container(Item):
+
+    def __init__(self, capacity, parent, position):
+        Item.__init__(self, parent, position)
+        self.items = set()
+        self.capacity = capacity
+        self.remaining = self.capacity
+
+    def store(self, item):
+        if self.remaining - item.size() < 0:
+            return False
+        else:
+            self.remaining -= item.size()
+            self.items.add(item)
+            return True
+
+    def remove(self, item):
+        if item in self.items:
+            self.items.remove(item)
+            self.remaining += item.size()
+            return True
+        else:
+            return False # not found
 
 
 class Weapon(Item):
