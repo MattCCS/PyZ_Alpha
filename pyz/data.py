@@ -5,14 +5,6 @@ from pyz import colors
 from pyz import log
 
 ####################################
-# SETTING UP THE LOGGER
-import os
-ROOTPATH = os.path.splitext(__file__)[0]
-LOGPATH = "{0}.log".format(ROOTPATH)
-LOGGER = log.get(__name__, path=LOGPATH)
-LOGGER.info("----------BEGIN----------")
-
-####################################
 
 ATTRIBUTES  = {}
 PARAMETERS  = {}

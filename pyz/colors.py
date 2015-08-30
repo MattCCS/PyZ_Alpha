@@ -4,14 +4,14 @@ This file contains mappings of {color names -> ASSIGNED curses indices}
 
 from pyz.curses_prep import curses
 
-####################################
-# SETTING UP THE LOGGER
-import os
-from pyz import log
-ROOTPATH = os.path.splitext(__file__)[0]
-LOGPATH = "{0}.log".format(ROOTPATH)
-LOGGER = log.get(__name__, path=LOGPATH)
-LOGGER.info("----------BEGIN----------")
+# ####################################
+# # SETTING UP THE LOGGER
+# import os
+# from pyz import log
+# ROOTPATH = os.path.splitext(__file__)[0]
+# LOGPATH = "{0}.log".format(ROOTPATH)
+# LOGGER = log.get(__name__, path=LOGPATH)
+# LOGGER.info("----------BEGIN----------")
 
 ####################################
 # updated dynamically when colors are requested
@@ -57,7 +57,7 @@ def fg_bg_to_index(fg_name, bg_name="black"):
     if key in PRESET:
         return PRESET[key]
     else:
-        LOGGER.debug("new pair: {} -- {}/{} {}/{}".format(IDX, fg_name, CURSES_COLORS[fg_name], bg_name, CURSES_COLORS[bg_name]))
+        # LOGGER.debug("new pair: {} -- {}/{} {}/{}".format(IDX, fg_name, CURSES_COLORS[fg_name], bg_name, CURSES_COLORS[bg_name]))
         curses.init_pair(IDX, CURSES_COLORS[fg_name], CURSES_COLORS[bg_name])
         out = curses.color_pair(IDX)
         PRESET[key] = out

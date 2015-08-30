@@ -62,7 +62,7 @@ def mainwrapped(stdscr):
         stdscr.refresh()
         # audio.play("/Users/Matt/Music/iTunes/iTunes Media/Music/Alt-J/This Is All Yours/05 Left Hand Free.m4a")
         audio.rough_loop("environment/swamp.aif", 100)
-        GRID.play(stdscr)
+        GRID.play()
     except Exception as e:
         print e
 

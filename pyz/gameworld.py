@@ -293,7 +293,7 @@ class Grid2D:
         fy = self.y_to_screen(y, py, BORDER_OFFSET_Y=BORDER_OFFSET_Y)
         return (fx, fy)
 
-    def render(self, visible, stdscr):
+    def render(self, visible):
 
         (px,py) = self.player.position()
 
@@ -307,7 +307,7 @@ class Grid2D:
 
                     if not (x, y) in self.nodes:
                         try:
-                            stdscr.addstr(fy, fx, u'█'.encode(CODE), colors.fg_bg_to_index("white"))
+                            self.stdscr.addstr(fy, fx, u'█'.encode(CODE), colors.fg_bg_to_index("white"))
                         except curses.error:
                             pass
                         # pass
@@ -317,11 +317,11 @@ class Grid2D:
                         pass
                     else:
                         try:
-                            stdscr.addstr(9, 0, " "*30)
-                            stdscr.addstr(10, 0, " "*30)
-                            stdscr.addstr(9, 0, "x, self.x, px, px*2: {}/{}/{}/{}".format(x, self.x, px, px*2))
-                            stdscr.addstr(10, 0, "y, self.y, self.viewy: {}/{}/{}".format(y, self.y, self.viewy))
-                            self.nodes[(x,y)].render(stdscr, fx, fy)
+                            self.stdscr.addstr(9, 0, " "*30)
+                            self.stdscr.addstr(10, 0, " "*30)
+                            self.stdscr.addstr(9, 0, "x, self.x, px, px*2: {}/{}/{}/{}".format(x, self.x, px, px*2))
+                            self.stdscr.addstr(10, 0, "y, self.y, self.viewy: {}/{}/{}".format(y, self.y, self.viewy))
+                            self.nodes[(x,y)].render(self.stdscr, fx, fy)
                             # self.nodes[(x+self.x/2,y+self.y/2)].render(stdscr, x*2, y)
                         except KeyError:
                             pass # node out of bounds
@@ -332,11 +332,11 @@ class Grid2D:
                 pass # screen is being resized, probably.
 
 
-    def update_viewport(self, stdscr):
-        self.viewy, self.viewx = stdscr.getmaxyx()
+    def update_viewport(self):
+        self.viewy, self.viewx = self.stdscr.getmaxyx()
 
     @log.logwrap
-    def handle_interaction(self, key, stdscr):
+    def handle_interaction(self, key):
 
         ####################################
         # updating
@@ -362,7 +362,7 @@ class Grid2D:
             else:
                 # it's an obstacle!  AKA gameobject
                 if self.player.prefs.auto_attack and self.player.weapon:
-                    self.player.weapon.attack_NODE(self.nodes[(x,y)], self, stdscr, (x,y))
+                    self.player.weapon.attack_NODE(self.nodes[(x,y)], self, self.stdscr, (x,y))
 
         elif key in map(ord, 'sS'):
             # toggle sneak/walk/sprint
@@ -393,7 +393,7 @@ class Grid2D:
 
             self.player.flashlight.update_direction(key_to_coord(key))
 
-        stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
+        self.stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
 
     def determine_visible(self):
 
@@ -443,34 +443,34 @@ class Grid2D:
 
     # @profile
     @log.logwrap
-    def tick(self, key, stdscr):
+    def tick(self, key):
         import time
 
         # TODO: \/
-        stdscr.erase() # should erase() be INSIDE phase 2?  need a better understanding.
-        self.tick_phase_1(key, stdscr)
+        self.stdscr.erase() # should erase() be INSIDE phase 2?  need a better understanding.
+        self.tick_phase_1(key)
 
         for obj in objects.GameObject.record:
-            obj.age(self, stdscr)
+            obj.age(self, self.stdscr)
 
-        self.tick_phase_2(stdscr)
+        self.tick_phase_2()
 
-        stdscr.refresh()
+        self.stdscr.refresh()
 
         if self.has_visual_events():
             while self.has_visual_events():
 
                 time.sleep(self.visual_requested_wait()) # <--- need to standardize this wait time!  or dynamicize it??
 
-                stdscr.erase()
+                self.stdscr.erase()
 
-                self.tick_phase_2(stdscr) # this *must* decrement all visual events.
+                self.tick_phase_2() # this *must* decrement all visual events.
 
-                stdscr.refresh()
+                self.stdscr.refresh()
 
         self.tick_phase_3()
 
-    def tick_phase_1(self, key, stdscr):
+    def tick_phase_1(self, key):
 
         ####################################
         # TOP visual events pause interaction
@@ -478,18 +478,15 @@ class Grid2D:
         # BOTTOM visual events simply occur
 
         if key == curses.KEY_RESIZE:
-            self.update_viewport(stdscr)
+            self.update_viewport()
             curses.resize_term(self.viewy, self.viewx)
-            stdscr.refresh()
+            self.stdscr.refresh()
             audio.play("weapons/trigger.aif", volume=0.2)
 
         elif not self.visual_events_top:
-            self.handle_interaction(key, stdscr)
+            self.handle_interaction(key)
 
-        # player
-        # self.nodes[self.player.position()].set_has_player()
-
-    def tick_phase_2(self, stdscr):
+    def tick_phase_2(self):
         # RENDERING
         
         ####################################
@@ -502,13 +499,13 @@ class Grid2D:
 
         # background
         self.determine_visible()
-        self.render(self.visible, stdscr)
+        self.render(self.visible)
 
         # player
-        self.render_player(stdscr)
+        self.render_player()
 
         # player
-        self.render_player(stdscr)
+        self.render_player()
 
         # exceptions
         for event in self.visual_events_top:
@@ -517,59 +514,59 @@ class Grid2D:
         self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
 
         # foreground
-        stdscr.border()
-        stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
-        stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
-        stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
-        stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
+        self.stdscr.border()
+        self.stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
+        self.stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
+        self.stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
+        self.stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
 
     def tick_phase_3(self):
 
         # self.reset() # <--- improve this
         pass
 
-    def render_player(self, stdscr):
+    def render_player(self):
         p = self.player.position()
         if (0,0) in self.visible:
             (fx,fy) = self.xy_to_screen(p, p)
-            stdscr.addstr(fy, fx, Node2D.PLAYER, colors.fg_bg_to_index("yellow")) # TODO: NOT 4 !!!
+            self.stdscr.addstr(fy, fx, Node2D.PLAYER, colors.fg_bg_to_index("yellow")) # TODO: NOT 4 !!!
 
-    def resize(self, stdscr):
-        stdscr.erase()
+    def resize(self):
+        self.stdscr.erase()
 
-        self.update_viewport(stdscr)
+        self.update_viewport()
         curses.resize_term(self.viewy, self.viewx)
-        stdscr.refresh()
+        self.stdscr.refresh()
         audio.play("weapons/trigger.aif", volume=0.2)
 
         self.determine_visible()
-        self.render(self.visible, stdscr)
-        self.render_player(stdscr)
-        stdscr.refresh()
+        self.render(self.visible)
+        self.render_player()
+        self.stdscr.refresh()
 
-    def play(self, stdscr):
+    def play(self):
 
         print "Playing..."
 
-        self.update_viewport(stdscr)
-        stdscr.clear()
-        self.tick('', stdscr)  # start
+        self.update_viewport()
+        self.stdscr.clear()
+        self.tick('')  # start
 
         try:
             while True:
                 # input
                 curses.flushinp()
-                key = stdscr.getch()
+                key = self.stdscr.getch()
 
                 if key == 113: # q
                     break
 
                 if key == curses.KEY_RESIZE:
-                    self.resize(stdscr)
+                    self.resize()
                     continue
 
                 # tick
-                self.tick(key, stdscr)
+                self.tick(key)
         except KeyboardInterrupt:
             print "User quit."
 
