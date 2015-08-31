@@ -119,6 +119,10 @@ class ShellCache(object):
     def coords_after(self, low):
         return self.union(self.shells_after(low))
 
+
+    def visible_coords(self):
+        return self.coords()
+
 ####################################
 # SETUP
 

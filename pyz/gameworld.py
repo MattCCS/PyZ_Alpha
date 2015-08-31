@@ -2,6 +2,7 @@
 
 import random
 import time
+import os
 
 from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
@@ -24,6 +25,65 @@ ROOTPATH = os.path.splitext(__file__)[0]
 LOGPATH = "{0}.log".format(ROOTPATH)
 LOGGER = log.get(__name__, path=LOGPATH)
 LOGGER.info("----------BEGIN----------")
+
+####################################
+
+RESERVED_X = 16
+RESERVED_Y = 3
+
+MIN_X = 20 + RESERVED_X
+MIN_Y = 10 + RESERVED_Y
+
+TOO_SMALL_MSG = [
+    "RESIZE",
+    "{} x {}".format(MIN_X, MIN_Y),
+]
+
+import signal
+from functools import wraps
+
+
+class TimesUpException(Exception):
+    pass
+
+
+def timeout(seconds=1.0, error_message="Time's up!"):
+
+    def decorator(func):
+
+        def _handle_timeout(signum, frame):
+            raise TimesUpException(error_message)
+
+        def wrapper(*args, **kwargs):
+            signal.signal(signal.SIGALRM, _handle_timeout)
+            signal.setitimer(signal.ITIMER_REAL,seconds) #used timer instead of alarm
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+
+            return result
+
+        return wraps(func)(wrapper)
+
+    return decorator
+
+# the 'stty size' command randomly takes FOREVER to return.
+# so, we just ask again.
+# THIS IS NOT WINDOWS COMPATIBLE!!!
+@timeout(seconds=0.01)
+def _true_terminal_size():
+    (rows, columns) = os.popen('stty size', 'r').read().split()
+    return (int(columns), int(rows))
+
+def true_terminal_size():
+    for i in xrange(10):
+        try:
+            return _true_terminal_size()
+        except TimesUpException:
+            continue
+
+    raise RuntimeError("Terminal not responding!")
 
 ####################################
 
@@ -55,7 +115,7 @@ ARROW_KEYS = {curses.KEY_LEFT, curses.KEY_RIGHT, curses.KEY_UP, curses.KEY_DOWN}
 
 def say(s):
     import subprocess
-    # subprocess.check_output(['say', s, '-r', '400'])
+    subprocess.check_output(['say', s, '-r', '400'])
 
 ####################################
 
@@ -199,8 +259,10 @@ class Grid2D:
         
         self.x = x
         self.y = y
-        self.viewx = x
-        self.viewy = y
+        self._truex = x
+        self._truey = y
+        self.viewx = self._truex - RESERVED_X
+        self.viewy = self._truey - RESERVED_Y
 
         self.nodes = {coord : Node2D(self, 3, coord) for coord in yield_coords( (self.x, self.y) )}
 
@@ -293,7 +355,7 @@ class Grid2D:
         fy = self.y_to_screen(y, py, BORDER_OFFSET_Y=BORDER_OFFSET_Y)
         return (fx, fy)
 
-    def render(self, visible):
+    def render_grid(self, visible):
 
         (px,py) = self.player.position()
 
@@ -317,10 +379,6 @@ class Grid2D:
                         pass
                     else:
                         try:
-                            self.stdscr.addstr(9, 0, " "*30)
-                            self.stdscr.addstr(10, 0, " "*30)
-                            self.stdscr.addstr(9, 0, "x, self.x, px, px*2: {}/{}/{}/{}".format(x, self.x, px, px*2))
-                            self.stdscr.addstr(10, 0, "y, self.y, self.viewy: {}/{}/{}".format(y, self.y, self.viewy))
                             self.nodes[(x,y)].render(self.stdscr, fx, fy)
                             # self.nodes[(x+self.x/2,y+self.y/2)].render(stdscr, x*2, y)
                         except KeyError:
@@ -332,8 +390,23 @@ class Grid2D:
                 pass # screen is being resized, probably.
 
 
-    def update_viewport(self):
-        self.viewy, self.viewx = self.stdscr.getmaxyx()
+    def update_viewport(self, sound=True):
+        flag = self.window_too_small()
+        self._truex, self._truey = true_terminal_size()
+        self.viewx = self._truex - RESERVED_X
+        self.viewy = self._truey - RESERVED_Y
+        # ^ reserved
+        curses.resize_term(self.viewy, self.viewx)
+        if sound:
+            audio.play("weapons/trigger.aif", volume=0.2)
+        if flag != self.window_too_small():
+            self.render_frame()
+        # self.stdscr.clear()
+
+    def update_viewport_if_wrong(self):
+        (x,y) = true_terminal_size()
+        if (self._truex, self._truey) != (x,y):
+            self.update_viewport()
 
     @log.logwrap
     def handle_interaction(self, key):
@@ -393,41 +466,34 @@ class Grid2D:
 
             self.player.flashlight.update_direction(key_to_coord(key))
 
-        self.stdscr.addstr(7, 0, "old player: {}".format( (oldx, oldy) ))
-
     def determine_visible(self):
 
         ####################################
         # rendering
-        ####################################
-        # ASBOLUTE
-        visible = set()
 
-        # add all light sources
-        for light in self.lightsources:
-            _blocked_relative = relative_coords(self.blocked, light.position())
-            _blocked_relative = utils.relevant_blocked(_blocked_relative, light.radius, shell_tools.CACHE) # saves work
-            # _visible = utils.visible_coords_absolute_2D(_blocked, light, light.position())
-            _visible = light.visible_coords(_blocked_relative)
-            _visible = relative_coords(_visible, utils.coord_invert(light.position()))
-            visible.update(_visible)
+        # all light sources individually
+        visible = set().union(*(utils.visible_coords_absolute_2D(self.blocked, light, light.position()) for light in self.lightsources))
 
         ####################################
         # RELATIVE
-        visible = relative_coords(visible, self.player.position()) # now relative to player!!
 
         # add special overlaps (trees the player *can't* see but which block vision nonetheless)
         # faster now, since 'visible' is smaller
-        _player_blocked_relative = relative_coords(self.blocked, self.player.position())
-        _player_potential_relative = utils.remaining(visible, _player_blocked_relative, arctracing.BLOCKTABLE)
-
-        visible &= _player_potential_relative
+        visible = utils.remaining(
+            relative_coords(visible,      self.player.position()),
+            relative_coords(self.blocked, self.player.position()),
+            arctracing.BLOCKTABLE
+            )
 
         # if we're in smoke, show adjacents
         if visible == set( [(0,0)] ):
             visible.update( [(1,0), (-1,0), (0,-1), (0,1)] )
 
         self.visible = visible
+
+        # self.visible = 
+        # U illuminated(rel) - blocked(rel)
+        # - blocked(player)
 
     def has_visual_events(self):
         return bool(self.visual_events_top) or bool(self.visual_events_bottom)
@@ -441,53 +507,52 @@ class Grid2D:
 
         return wait
 
-    # @profile
     @log.logwrap
     def tick(self, key):
-        import time
-
-        # TODO: \/
-        self.stdscr.erase() # should erase() be INSIDE phase 2?  need a better understanding.
-        self.tick_phase_1(key)
-
-        for obj in objects.GameObject.record:
-            obj.age(self, self.stdscr)
-
-        self.tick_phase_2()
-
-        self.stdscr.refresh()
-
-        if self.has_visual_events():
-            while self.has_visual_events():
-
-                time.sleep(self.visual_requested_wait()) # <--- need to standardize this wait time!  or dynamicize it??
-
-                self.stdscr.erase()
-
-                self.tick_phase_2() # this *must* decrement all visual events.
-
-                self.stdscr.refresh()
-
-        self.tick_phase_3()
-
-    def tick_phase_1(self, key):
+        if self.window_too_small():
+            return
 
         ####################################
         # TOP visual events pause interaction
         # since these are to be watched
         # BOTTOM visual events simply occur
 
-        if key == curses.KEY_RESIZE:
-            self.update_viewport()
-            curses.resize_term(self.viewy, self.viewx)
-            self.stdscr.refresh()
-            audio.play("weapons/trigger.aif", volume=0.2)
-
-        elif not self.visual_events_top:
+        if not self.visual_events_top:
             self.handle_interaction(key)
 
-    def tick_phase_2(self):
+        for obj in objects.GameObject.record:
+            obj.age(self, self.stdscr)
+
+
+    def render_player(self):
+        p = self.player.position()
+        if (0,0) in self.visible:
+            (fx,fy) = self.xy_to_screen(p, p)
+            self.stdscr.addstr(fy, fx, Node2D.PLAYER, colors.fg_bg_to_index("yellow")) # TODO: NOT 4 !!!
+
+
+    def window_too_small(self):
+        return self._truex < MIN_X or self._truey < MIN_Y
+
+    def render_too_small(self):
+
+        self.stdscr.clear()
+
+        for (y,row) in enumerate(TOO_SMALL_MSG):
+            for (x,c) in enumerate(row):
+                try:
+                    self.stdscr.addstr(y, x, c)
+                except curses.error:
+                    pass
+
+    def render_frame(self):
+        if self.window_too_small():
+            self.render_too_small()
+            return
+
         # RENDERING
+        # self.stdscr.clear()
+        self.stdscr.erase()
         
         ####################################
         # META-RENDERING
@@ -499,10 +564,7 @@ class Grid2D:
 
         # background
         self.determine_visible()
-        self.render(self.visible)
-
-        # player
-        self.render_player()
+        self.render_grid(self.visible)
 
         # player
         self.render_player()
@@ -510,47 +572,56 @@ class Grid2D:
         # exceptions
         for event in self.visual_events_top:
             event.step()
-            # os.system('say ok')
         self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
 
         # foreground
+        if not (self._truex, self._truey) == true_terminal_size():
+            print '\a'
         self.stdscr.border()
-        self.stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
-        self.stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
-        self.stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
-        self.stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
-
-    def tick_phase_3(self):
-
-        # self.reset() # <--- improve this
-        pass
-
-    def render_player(self):
-        p = self.player.position()
-        if (0,0) in self.visible:
-            (fx,fy) = self.xy_to_screen(p, p)
-            self.stdscr.addstr(fy, fx, Node2D.PLAYER, colors.fg_bg_to_index("yellow")) # TODO: NOT 4 !!!
-
-    def resize(self):
-        self.stdscr.erase()
-
-        self.update_viewport()
-        curses.resize_term(self.viewy, self.viewx)
+        # self.stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
+        # self.stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
+        # self.stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
+        # self.stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
         self.stdscr.refresh()
-        audio.play("weapons/trigger.aif", volume=0.2)
+        
+        # other frames
+        self.TEST.move((self.viewx - RESERVED_X - 10, 0))
+        self.TEST.render()
 
-        self.determine_visible()
-        self.render(self.visible)
-        self.render_player()
-        self.stdscr.refresh()
+
+    def render(self):
+        """
+        TICKS visual events!
+        """
+
+        self.render_frame()
+
+        while self.has_visual_events():
+
+            time.sleep(self.visual_requested_wait())
+
+            self.stdscr.erase()
+
+            self.render_frame() # this *must* decrement all visual events.
+
+
+    # def render_resize(self):
+    #     # self.stdscr.erase()
+
+    #     self.update_viewport()
+    #     # self.stdscr.refresh()
+    #     # audio.play("weapons/trigger.aif", volume=0.2)
+
+    #     # self.render_frame()
 
     def play(self):
 
         print "Playing..."
 
-        self.update_viewport()
         self.stdscr.clear()
+        self.update_viewport(sound=False)
         self.tick('')  # start
+        self.render()
 
         try:
             while True:
@@ -562,11 +633,15 @@ class Grid2D:
                     break
 
                 if key == curses.KEY_RESIZE:
-                    self.resize()
+                    self.update_viewport()
                     continue
+                
+                # self.update_viewport_if_wrong()
 
                 # tick
                 self.tick(key)
+                # render
+                self.render()
         except KeyboardInterrupt:
             print "User quit."
 

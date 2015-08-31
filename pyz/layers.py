@@ -5,39 +5,31 @@ import itertools
 
 
 def islice_fixed(it, cap=-1, fill=None):
+    it = iter(it)
 
-    # no cap
     if cap < 0:
-        for elem in it:
-            yield elem
-        return
-
-    # cap is 0
-    if cap == 0:
-        return
-
-    # try to hit cap
-    i = 0
-    for (i, elem) in enumerate(it, 1):
-        yield elem
-        if i == cap:
-            return
-
-    # add filler
-    remaining = cap - i
-    for _ in xrange(remaining):
-        yield fill
+        while True:
+            try:
+                yield next(it)
+            except StopIteration:
+                return
+    else:
+        for i in xrange(cap):
+            try:
+                yield next(it)
+            except StopIteration:
+                yield fill
 
 
 def yield_parallel(*its):
-    count = 0
+    done_so_far = 0
 
-    its = map(iter, its)
+    its = (iter(it) for it in its)
 
     for it in its:
 
         # deplete first N from each iterator
-        for _ in xrange(count):
+        for _ in xrange(done_so_far):
             try:
                 next(it)
             except StopIteration:
@@ -45,7 +37,7 @@ def yield_parallel(*its):
 
         for elem in it:
             yield elem
-            count += 1
+            done_so_far += 1
 
 ####################################
 
@@ -53,9 +45,9 @@ class Layer(object):
     
     def __init__(self, dims=(settings.WIDTH, settings.HEIGHT)):
         self.w, self.h = dims
-
         self.arr = [None] * self.w * self.h
 
+    # 1D/2D utilities
     def size(self):
         return self.w * self.h
 
@@ -80,7 +72,7 @@ class Layer(object):
             try:
                 self.seti(idx, c)
             except IndexError:  # out of bounds (either direction)
-                if idx >= self.size():
+                if idx >= self.size():  # if BEFORE, we wait
                     break   # beyond size -- don't bother
 
     def setlines(self, x, y, lines):
@@ -98,6 +90,8 @@ class Layer(object):
         rem = self.size() - i
         self.arr[i:] = islice_fixed(yield_parallel(it, self.arr[i:]), rem)
 
+    ####################################
+
     # iterating over lines
     def __iter__(self):
         for y in xrange(self.h):
@@ -108,7 +102,7 @@ class Layer(object):
     def debugrender(self):
         return '\n'.join(''.join((e if e is not None else ' ') for e in row) for row in self)
 
-    def renderto(self, screen):
+    def renderto(self, screen, x, y):
         raise NotImplementedError()
 
 
@@ -117,15 +111,18 @@ class LayerManager(object):
     def __init__(self, dims=(settings.WIDTH, settings.HEIGHT)):
         self.w, self.h = dims
 
-        self.layers = []
-        self.layermap = {}
+        self.layernames = []    # strings (ORDER MATTERS)
+        self.layermap = {}      # string -> (x, y, layer)
 
     def get(self, name):
         return self.layermap[name]
 
-    def render(self):
-        pass
+    # def debugrender(self):
+    #     for layername in self.layernames:
+    #         (x, y, layer) = self.layermap[layername]
+            
 
+####################################
 
 BODY = """\
  /-\\ 
