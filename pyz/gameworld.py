@@ -2,7 +2,6 @@
 
 import random
 import time
-import os
 
 from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
@@ -15,7 +14,9 @@ from pyz import data
 from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
 from pyz import utils
-from pyz import windows
+from pyz import layers
+
+from pyz.terminal_size import true_terminal_size
 
 ####################################
 # SETTING UP THE LOGGER
@@ -28,8 +29,11 @@ LOGGER.info("----------BEGIN----------")
 
 ####################################
 
-RESERVED_X = 16
-RESERVED_Y = 3
+BLOCK_CHANCE_MIN = 20
+BLOCK_CHANCE_MAX = 80
+
+RESERVED_X = 20
+RESERVED_Y = 8
 
 MIN_X = 20 + RESERVED_X
 MIN_Y = 10 + RESERVED_Y
@@ -39,63 +43,11 @@ TOO_SMALL_MSG = [
     "{} x {}".format(MIN_X, MIN_Y),
 ]
 
-import signal
-from functools import wraps
-
-
-class TimesUpException(Exception):
-    pass
-
-
-def timeout(seconds=1.0, error_message="Time's up!"):
-
-    def decorator(func):
-
-        def _handle_timeout(signum, frame):
-            raise TimesUpException(error_message)
-
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.setitimer(signal.ITIMER_REAL,seconds) #used timer instead of alarm
-            try:
-                result = func(*args, **kwargs)
-            finally:
-                signal.alarm(0)
-
-            return result
-
-        return wraps(func)(wrapper)
-
-    return decorator
-
-# the 'stty size' command randomly takes FOREVER to return.
-# so, we just ask again.
-# THIS IS NOT WINDOWS COMPATIBLE!!!
-@timeout(seconds=0.01)
-def _true_terminal_size():
-    (rows, columns) = os.popen('stty size', 'r').read().split()
-    return (int(columns), int(rows))
-
-def true_terminal_size():
-    for i in xrange(10):
-        try:
-            return _true_terminal_size()
-        except TimesUpException:
-            continue
-
-    raise RuntimeError("Terminal not responding!")
-
 ####################################
 
 def relative_coords(coords, rel_coord):
     (rx, ry) = rel_coord
     return set([(x-rx, y-ry) for (x,y) in coords])
-
-def tup2bin(tup):
-    return int(''.join(map(str, tup)), 2)
-
-def bin2tup(n):
-    return tuple(map(int, bin(n)[2:]))
 
 ####################################
 
@@ -113,31 +65,18 @@ SPEED_DICT = {
 
 ARROW_KEYS = {curses.KEY_LEFT, curses.KEY_RIGHT, curses.KEY_UP, curses.KEY_DOWN}
 
-def say(s):
+def say(s, r=400):
     import subprocess
-    subprocess.check_output(['say', s, '-r', '400'])
+    subprocess.check_output(['say', s, '-r', str(r)])
 
 ####################################
 
 class Node2D(object):
 
     HIDDEN = u'█'
-    PLAYER = 'P'
-    SOLID  = 'O'
-    GLASS  = '/'
-    SMOKE  = '%'
-    AIR    = '.'
     ERROR  = '!'
 
-    def __init__(self, parentgrid, code, coord):
-        # passable, transparent
-        # 1 1 = air
-        # 1 0 = fog/smoke
-        # 0 1 = glass
-        # 0 0 = solid
-
-        if type(code) is int:
-            code = bin2tup(code)
+    def __init__(self, parentgrid, coord):
 
         self.parentgrid = parentgrid
         self.coord = coord
@@ -145,8 +84,8 @@ class Node2D(object):
         self.reverse_video = False
 
         self.name = '---'
-        self.passable, self.transparent = code
-        # self.has_player = False
+        self.passable = True
+        self.transparent = True
         self.material = None
         self.appearance = None
         self.color = 0
@@ -155,9 +94,6 @@ class Node2D(object):
         self.health = 0
         self.objects = []
         self.set_dirt()
-
-    # def reset(self):
-    #     self.unset_has_player()
 
     ####################################
     # attribute assignment
@@ -191,16 +127,9 @@ class Node2D(object):
         self.set_dirt()
         self.parentgrid.blocked.discard(self.coord)
 
-    ####################################
+    def render(self, layer, x, y):
 
-    def code(self):
-        return (self.passable, self.transparent)
-
-    def code_num(self):
-        return tup2bin(map(int, self.code()))
-
-    def render(self, stdscr, x, y):
-
+        # yes, every tick
         if self.name == 'smoke':
             self.appearance = random.choice("%&")
 
@@ -208,9 +137,9 @@ class Node2D(object):
 
         try:
             if not self.reverse_video:
-                stdscr.addstr(y, x, char.encode(CODE), colors.fg_bg_to_index(self.color))
+                layer.set(x, y, char.encode(CODE), color=colors.fg_bg_to_index(self.color))
             else:
-                stdscr.addstr(y, x, char.encode(CODE), curses.A_REVERSE)
+                layer.set(x, y, char.encode(CODE), color=curses.A_REVERSE)
         except curses.error:
             pass # some out-of-bounds issue.
             # TODO: investigate!
@@ -253,27 +182,27 @@ def key_to_coord(key):
 
 class Grid2D:
 
-    def __init__(self, stdscr, x, y, blocked_set):
+    def __init__(self, stdscr, x, y):
 
         self.stdscr = stdscr
+
+        self.spacing = 2
         
         self.x = x
         self.y = y
         self._truex = x
         self._truey = y
-        self.viewx = self._truex - RESERVED_X
-        self.viewy = self._truey - RESERVED_Y
 
-        self.nodes = {coord : Node2D(self, 3, coord) for coord in yield_coords( (self.x, self.y) )}
+        self.nodes = {coord : Node2D(self, coord) for coord in yield_coords( (self.x, self.y) )}
 
-        self.blocked = blocked_set
-        for coord in blocked_set:
+        # make trees
+        self.blocked = set()
+        for _ in xrange(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
+            coord = (random.randint(0,x-2), random.randint(0,y-2))
+            self.blocked.add(coord)
             self.nodes[coord].set_tree()
 
         self.visible = set()
-
-        # windows
-        self.TEST = windows.Renderable(self.stdscr)
 
         # events
         self.visual_events_top    = []
@@ -292,9 +221,6 @@ class Grid2D:
         for x,y in rad3:
             self.blocked.add( (x+cx, y+cy) )
             self.nodes[(x+cx, y+cy)].set_smoke()
-
-        # self.nodes[(cx,cy)].set_tree()
-        # self.blocked.add((cx,cy))
 
         # grass
         (cx, cy) = (20, 9)
@@ -329,47 +255,44 @@ class Grid2D:
     #     for node in nodes:
     #         node.reset()
 
-    def frame_coords_2D(self):
+    def frame_coords_2D(self, width, height):
         (px, py) = self.player.position()
 
-        # # ABSOLUTE, around player
-        # for y in xrange(py+self.y/2-1, py-self.y/2-1, -1):
-        #     yield [(x,y) for x in xrange(px-self.x/2, px+self.x/2)]
+        for y in xrange(py-height/2, py+height/2+1):
+            yield [(x,y) for x in xrange(px-width/2, px+width/2+1)]
 
-        # for y in xrange(py + RADIUS - 1, py - RADIUS - 1, -1):
-        #     yield [(x,y) for x in xrange(px-RADIUS, px+RADIUS)]
+    def x_to_screen(self, x, px, width, BORDER_OFFSET_X=1, spacing=2):
+        return x*spacing - px*spacing + width/2 # + BORDER_OFFSET_X
 
-        for y in xrange(py + self.y/2 - 1, py - self.y/2 - 1, -1):
-            yield [(x,y) for x in xrange(px-self.x, px+self.x)]
+    def y_to_screen(self, y, py, height, BORDER_OFFSET_Y=1):
+        return height/2 - y + py # - BORDER_OFFSET_Y - 1
 
-    def x_to_screen(self, x, px, BORDER_OFFSET_X=1, spacing=2):
-        return x*spacing - px*spacing + BORDER_OFFSET_X + self.viewx/2
-
-    def y_to_screen(self, y, py, BORDER_OFFSET_Y=1):
-        return self.viewy/2 - y + py - BORDER_OFFSET_Y - 1
-
-    def xy_to_screen(self, coord, ppos, spacing=2, BORDER_OFFSET_X=1, BORDER_OFFSET_Y=1):
+    def xy_to_screen(self, coord, ppos, width, height, spacing=2, BORDER_OFFSET_X=1, BORDER_OFFSET_Y=1):
         (x,y) = coord
         (px,py) = ppos
-        fx = self.x_to_screen(x, px, BORDER_OFFSET_X=BORDER_OFFSET_X, spacing=2)
-        fy = self.y_to_screen(y, py, BORDER_OFFSET_Y=BORDER_OFFSET_Y)
+        fx = self.x_to_screen(x, px, width, BORDER_OFFSET_X=BORDER_OFFSET_X, spacing=spacing)
+        fy = self.y_to_screen(y, py, height, BORDER_OFFSET_Y=BORDER_OFFSET_Y)
         return (fx, fy)
 
     def render_grid(self, visible):
 
+        layer = layers.LayerManager.get("gameworld")
+
         (px,py) = self.player.position()
 
-        for row in self.frame_coords_2D():
+        (w,h) = layer.size()
+
+        for row in self.frame_coords_2D(w,h):
 
             try:
                 for (x,y) in row:
 
-                    fx = self.x_to_screen(x, px)
-                    fy = self.y_to_screen(y, py)
+                    fx = self.x_to_screen(x, px, w, spacing=self.spacing)
+                    fy = self.y_to_screen(y, py, h)
 
                     if not (x, y) in self.nodes:
                         try:
-                            self.stdscr.addstr(fy, fx, u'█'.encode(CODE), colors.fg_bg_to_index("white"))
+                            layer.set(fx, fy, u'█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
                         except curses.error:
                             pass
                         # pass
@@ -379,34 +302,13 @@ class Grid2D:
                         pass
                     else:
                         try:
-                            self.nodes[(x,y)].render(self.stdscr, fx, fy)
+                            self.nodes[(x,y)].render(layer, fx, fy)
                             # self.nodes[(x+self.x/2,y+self.y/2)].render(stdscr, x*2, y)
                         except KeyError:
                             pass # node out of bounds
 
-                    # stdscr.addstr(final_y, x*2+1, ' ')
-
             except curses.error:
                 pass # screen is being resized, probably.
-
-
-    def update_viewport(self, sound=True):
-        flag = self.window_too_small()
-        self._truex, self._truey = true_terminal_size()
-        self.viewx = self._truex - RESERVED_X
-        self.viewy = self._truey - RESERVED_Y
-        # ^ reserved
-        curses.resize_term(self.viewy, self.viewx)
-        if sound:
-            audio.play("weapons/trigger.aif", volume=0.2)
-        if flag != self.window_too_small():
-            self.render_frame()
-        # self.stdscr.clear()
-
-    def update_viewport_if_wrong(self):
-        (x,y) = true_terminal_size()
-        if (self._truex, self._truey) != (x,y):
-            self.update_viewport()
 
     @log.logwrap
     def handle_interaction(self, key):
@@ -525,25 +427,61 @@ class Grid2D:
 
 
     def render_player(self):
+        layer = layers.LayerManager.get("gameworld")
+
         p = self.player.position()
+        # say('player is at {} {}'.format(*p))
         if (0,0) in self.visible:
-            (fx,fy) = self.xy_to_screen(p, p)
-            self.stdscr.addstr(fy, fx, Node2D.PLAYER, colors.fg_bg_to_index("yellow")) # TODO: NOT 4 !!!
+            (fx,fy) = self.xy_to_screen(p, p, *layer.size())
+            # say('player set {} {}'.format(fx, fy))
+            layer.set(fx, fy, 'P', color=colors.fg_bg_to_index("yellow"))
 
 
     def window_too_small(self):
         return self._truex < MIN_X or self._truey < MIN_Y
 
     def render_too_small(self):
-
-        self.stdscr.clear()
+        MAIN = layers.LayerManager.get("main")
+        MAIN.reset_recursive() # TODO: <---
 
         for (y,row) in enumerate(TOO_SMALL_MSG):
             for (x,c) in enumerate(row):
-                try:
-                    self.stdscr.addstr(y, x, c)
-                except curses.error:
-                    pass
+                MAIN.set(x, y, c, color=colors.fg_bg_to_index("white"))
+
+
+    def update_viewport(self, sound=True):
+        flag = self.window_too_small()
+        self._truex, self._truey = true_terminal_size()
+        # ^ reserved
+        curses.resize_term(self._truey, self._truex)
+        self.resize_layers()
+        if sound:
+            audio.play("weapons/trigger.aif", volume=0.2)
+        if flag != self.window_too_small():
+            self.render_frame()
+
+    def resize_layers(self):
+        STATS_W = 16
+        PLAYER_H = 10
+        NEWS_H = 4
+
+        MAIN = layers.get("main")
+        MAIN.resize(self._truex-1, self._truey) # TODO: <---
+        (w,h) = MAIN.size()
+        STATS_H = h-1-1-PLAYER_H
+        GAMEFRAME_W = w-1-1-STATS_W
+        GAMEFRAME_H = h-1-1-NEWS_H
+
+        layers.get("gameframe").resize(GAMEFRAME_W, GAMEFRAME_H)
+        layers.get("gameworld").resize(GAMEFRAME_W-1-1, GAMEFRAME_H-1-1)
+
+        layers.get("stats").resize(STATS_W, STATS_H)
+        MAIN.move_layer(w-1-STATS_W, 1, "stats")
+
+        MAIN.move_layer(w-1-STATS_W, 1+STATS_H, "player")
+
+        layers.get("news").resize(GAMEFRAME_W, 4)
+        MAIN.move_layer(1, 1+GAMEFRAME_H, "news")
 
     def render_frame(self):
         if self.window_too_small():
@@ -551,16 +489,18 @@ class Grid2D:
             return
 
         # RENDERING
-        # self.stdscr.clear()
-        self.stdscr.erase()
+        # layers.LayerManager.get("main").reset()
+        # layers.LayerManager.get("gameworld").reset()
+        layers.get("main").reset_recursive()
         
         ####################################
         # META-RENDERING
 
         # modifiers
-        for event in self.visual_events_bottom:
-            event.step()
-        self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
+        # TODO:
+        # for event in self.visual_events_bottom:
+        #     event.step()
+        # self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
 
         # background
         self.determine_visible()
@@ -570,58 +510,76 @@ class Grid2D:
         self.render_player()
 
         # exceptions
-        for event in self.visual_events_top:
-            event.step()
-        self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
+        # TODO:
+        # for event in self.visual_events_top:
+        #     event.step()
+        # self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
 
         # foreground
-        if not (self._truex, self._truey) == true_terminal_size():
-            print '\a'
-        self.stdscr.border()
-        # self.stdscr.addstr(0, 0, "player: {}".format(self.player.position()))
-        # self.stdscr.addstr(1, 0, "standing status: {}".format(STANDING_DICT[self.player_stand_state]))
-        # self.stdscr.addstr(2, 0, "speed status: {}".format(SPEED_DICT[self.player_sneakwalksprint]))
-        # self.stdscr.addstr(3, 0, "screen dimensions: {}".format( (self.viewx, self.viewy) ))
-        self.stdscr.refresh()
-        
-        # other frames
-        self.TEST.move((self.viewx - RESERVED_X - 10, 0))
-        self.TEST.render()
+        # TODO:
+        # if not (self._truex, self._truey) == true_terminal_size():
+        #     print '\a'
 
 
-    def render(self):
-        """
-        TICKS visual events!
-        """
+    # def render(self):
+    #     """
+    #     TICKS visual events!
+    #     """
 
-        self.render_frame()
+    #     self.render_frame()
 
-        while self.has_visual_events():
+    #     while self.has_visual_events():
 
-            time.sleep(self.visual_requested_wait())
+    #         time.sleep(self.visual_requested_wait())
 
-            self.stdscr.erase()
+    #         self.stdscr.erase()
 
-            self.render_frame() # this *must* decrement all visual events.
+    #         self.render_frame() # this *must* decrement all visual events.
 
 
-    # def render_resize(self):
-    #     # self.stdscr.erase()
 
-    #     self.update_viewport()
-    #     # self.stdscr.refresh()
-    #     # audio.play("weapons/trigger.aif", volume=0.2)
+    def render_GUI(self):
+        if not self.window_too_small():
+            layers.add_border(layers.get("main"), color=colors.fg_bg_to_index("red"))
+            layers.get("main").setrange(0,0, "<main>", color=colors.fg_bg_to_index("white"))
 
-    #     # self.render_frame()
+            layers.get("gameworld").setrange(0, 0, "<gameworld>", color=colors.fg_bg_to_index("white"))
 
-    def play(self):
+            layers.add_border(layers.get("gameframe"), color=colors.fg_bg_to_index("white"))
+            layers.get("gameframe").setrange(0, 0, "<gameframe>", color=colors.fg_bg_to_index("white"))
 
-        print "Playing..."
+            layers.add_border(layers.get("stats"), color=colors.fg_bg_to_index("blue"))
+            layers.get("stats").setrange(0, 0, "<stats>", color=colors.fg_bg_to_index("white"))
 
-        self.stdscr.clear()
+            layers.add_border(layers.get("player"), color=colors.fg_bg_to_index("green"))
+            layers.get("player").setrange(0, 0, "<player>", color=colors.fg_bg_to_index("white"))
+
+            layers.add_border(layers.get("news"), color=colors.fg_bg_to_index("yellow"))
+            layers.get("news").setrange(0, 0, "<news>", color=colors.fg_bg_to_index("white"))
+
+
+    def playwrap(self):
+
+        # print "Playing..."
+
+        # say('1')
+        self.spacing = 2
+        MAIN = layers.LayerManager("main", (80,24),
+            sublayers=[
+                # (0, 0, layers.LayerManager("main_border", (80, 24))),
+                (1, 1, layers.LayerManager("gameframe", (62,18), sublayers=[
+                    (1, 1, layers.LayerManager("gameworld", (60,16))),
+                ])),
+                (63, 1, layers.LayerManager("stats", (16, 12))),
+                (63, 13, layers.LayerManager("player", (16, 10))),
+                (1, 19, layers.LayerManager("news", (62, 4))),
+            ])
+
         self.update_viewport(sound=False)
         self.tick('')  # start
-        self.render()
+        self.render_frame()
+        self.render_GUI()
+        render_to(MAIN, self.stdscr)
 
         try:
             while True:
@@ -635,14 +593,36 @@ class Grid2D:
                 if key == curses.KEY_RESIZE:
                     self.update_viewport()
                     continue
-                
-                # self.update_viewport_if_wrong()
 
                 # tick
                 self.tick(key)
+
                 # render
-                self.render()
+                self.render_frame()
+                self.render_GUI()
+                render_to(MAIN, self.stdscr)
         except KeyboardInterrupt:
             print "User quit."
 
         print "Quit."
+
+    def play(self):
+        try:
+            self.playwrap()
+        except Exception as e:
+            import traceback
+            say(str(e), r=200)
+            with open("BAD.txt", 'w') as f:
+                f.write(traceback.format_exc())
+
+
+def render_to(main_layer, stdscr):
+    stdscr.erase()
+
+    for (x, y, (char, color, _)) in main_layer.items():
+        try:
+            stdscr.addstr(y, x, char, color)
+        except curses.error:
+            break
+
+    stdscr.refresh()

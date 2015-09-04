@@ -186,7 +186,7 @@ class Weapon(Item):
         if node.material in self.beats:
             audio.play_attack(self.typ, node.material)
             node.damage(self.damage)
-            grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, stdscr, coord))
+            # grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, stdscr, coord))
 
 WEAPONS = {}
 WEAPONS['axe1'] = Weapon('axe', ['cloth', 'wood'], 1, 'slicing')

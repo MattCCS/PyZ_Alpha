@@ -1,7 +1,7 @@
 
 import random
 
-from pyz.curses_prep import curses
+from pyz import curses_prep
 
 from pyz.gamedata import json_parser
 from pyz import audio
@@ -19,43 +19,22 @@ DIMENSIONS = 2
 X = 80 # X * 2 - 1 == screen width
 Y = 50
 
-BLOCK_CHANCE_MIN = 20
-BLOCK_CHANCE_MAX = 80
-
 ####################################
 
 @log.logwrap
 def mainwrapped(stdscr):
-
-    curses.curs_set(0)
-    curses.start_color()
-    curses.use_default_colors()
-    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
-    # establish_colors()
-
-    stdscr.bkgd(' ', curses.color_pair(1)) # set background color to WHITE ON BLACK
+    curses_prep.setup(stdscr)
 
     stdscr.addstr(0, 0, "Starting...")
     stdscr.refresh()
 
     stdscr.addstr(1, 0, "Loading viewtree...")
     stdscr.refresh()
-    # PLAYER_VIEW = viewtree.gen_view_from_radius(RADIUS)
-    # (PLAYER_VIEW, angle_table_2D) = fasttree.gen_new(RADIUS, DIMENSIONS)
-
-    # make trees
-    blocked = set()
-    for _ in xrange(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
-        (x,y) = (random.randint(0,X-2), random.randint(0,Y-2))
-        blocked.add((x,y))
-        # blocked.add((x,y+1))
-        # blocked.add((x+1,y))
-        # blocked.add((x+1,y+1))
 
     # grid
     stdscr.addstr(2, 0, "Creating game grid...")
     stdscr.refresh()
-    GRID = gameworld.Grid2D(stdscr, X, Y, blocked)
+    GRID = gameworld.Grid2D(stdscr, X, Y)
 
     try:
         stdscr.addstr(3, 0, "Playing...")
@@ -67,14 +46,14 @@ def mainwrapped(stdscr):
         print e
 
     audio.stop_all_sounds()
-    curses.curs_set(1)
+    curses_prep.curses.curs_set(1)
 
     print "\n"*(Y + 10)
 
 @log.logwrap
 def main():
     json_parser.load_all()
-    curses.wrapper(mainwrapped)
+    curses_prep.curses.wrapper(mainwrapped)
 
 
 if __name__ == '__main__':
