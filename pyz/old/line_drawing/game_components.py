@@ -1,6 +1,6 @@
 
 
-from __future__ import unicode_literals
+
 
 import os
 import sys
@@ -83,7 +83,7 @@ class Node2D:
         return (self.passable, self.transparent)
 
     def code_num(self):
-        return tup2bin(map(int, self.code()))
+        return tup2bin(list(map(int, self.code())))
 
     def render(self):
         c = self.code_num()
@@ -125,7 +125,7 @@ def yield_coords_offset(range_nums, offset_nums):
     assert len(range_nums) == len(offset_nums)
 
     for coord in yield_coords(range_nums):
-        yield tuple(map(sum, zip(coord, offset_nums)))
+        yield tuple(map(sum, list(zip(coord, offset_nums))))
 
 
 class Grid2D:
@@ -141,7 +141,7 @@ class Grid2D:
         # self.nodes = gen_plane(x,y)
         self.nodes = {coord : Node2D(3) for coord in yield_coords( (self.x, self.y) )}
 
-        print self.nodes
+        print(self.nodes)
 
         self.blocked = blocked_set
         for coord in blocked_set:
@@ -154,7 +154,7 @@ class Grid2D:
 
     def reset(self, coords=None):
         if coords is None:
-            nodes = self.nodes.itervalues()
+            nodes = iter(self.nodes.values())
         else:
             nodes = (self.nodes[coord] for coord in coords)
 
@@ -278,7 +278,7 @@ class Grid2D:
 
     def play(self):
 
-        print "Playing..."
+        print("Playing...")
 
         self.tick('')  # start
 
@@ -292,7 +292,7 @@ class Grid2D:
             # tick
             self.tick(key)
 
-        print "Quit."
+        print("Quit.")
 
 
 
@@ -331,7 +331,7 @@ def main():
         elif PLAY == 2:
             blocked = set([(20,20)])
 
-        print len(PLAYER_VIEW.visible_coords(blocked))
+        print(len(PLAYER_VIEW.visible_coords(blocked)))
 
         # grid
         GRID = Grid2D(X,Y, PLAYER_VIEW, blocked)
@@ -351,7 +351,7 @@ def main():
         try:
             GRID.play()
         except Exception as e:
-            print e
+            print(e)
         os.system("stty echo")
         os.system('tput cnorm')
 
@@ -368,12 +368,12 @@ def main():
         # S = raytracing2.gen_path_bounded_absolute((0,0), (50,-37))
         S = coord_gen_utils.all_paths_to_points(coord_gen_utils.shell_wrap(32), listify=True)
         S = [e for l in S for e in l]
-        print S
-        ax.scatter(*zip(*S), c='r', marker='o')
+        print(S)
+        ax.scatter(*list(zip(*S)), c='r', marker='o')
 
         plt.show()
 
-    print "\n"*(Y + 10)
+    print("\n"*(Y + 10))
 
 if __name__ == '__main__':
     # printsl(u'\u2588'*100)

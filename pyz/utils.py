@@ -5,13 +5,13 @@ from pyz import log # <3
 # COORD UTILS
 
 def coords_add(*coords):
-    return tuple(map(sum, zip(*coords)))
+    return tuple(map(sum, list(zip(*coords))))
 
 def coord_invert(coord):
-    return tuple(map(lambda n:-n, coord))
+    return tuple([-n for n in coord])
 
 def coord_diff(a, b):
-    return tuple(map(lambda p: p[0]-p[1], zip(*[a,b])))
+    return tuple([p[0]-p[1] for p in zip(*[a,b])])
 
 ####################################
 # 

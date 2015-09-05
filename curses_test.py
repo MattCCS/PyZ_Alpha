@@ -15,7 +15,7 @@ def main(stdscr):
                 # c = u'\u0438'.encode('utf-8')
                 # stdscr.addstr(c, curses.color_pair(i))
                 # stdscr.addch(9118)
-                stdscr.addstr('\u239e')
+                stdscr.addstr('\\u239e')
         except curses.error:
             # End of screen reached
             pass

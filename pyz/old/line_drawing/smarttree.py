@@ -74,24 +74,24 @@ def form_data_frame(coord, coords_owned, bytes_per_coord, total_offset_bytes, ad
     return bar
 
 def generate_uniques(shells, radius=RADIUS, dimensions=DIMENSIONS, echo=False):
-    print "  radius:", RADIUS
+    print("  radius:", RADIUS)
 
     endpoints = shells[-1]
-    print "  endpoints:", endpoints
+    print("  endpoints:", endpoints)
 
-    print "  Generating all rays..."
+    print("  Generating all rays...")
     all_rays = ray_tools.generate_all_rays(endpoints, dimensions)
-    print "  all rays:", all_rays
+    print("  all rays:", all_rays)
 
-    print "Forming all_rays lookup table..."
+    print("Forming all_rays lookup table...")
     ray_lookup_table = ray_tools.form_ray_lookup_table(all_rays)
 
-    print "  per shell:"
+    print("  per shell:")
     uniques = {}
 
     number_of_coords = 0
     for (i, shell) in enumerate(shells):
-        print "    Shell:", i
+        print("    Shell:", i)
         number_of_coords += len(shell)
 
         hit_sets = {}
@@ -99,12 +99,12 @@ def generate_uniques(shells, radius=RADIUS, dimensions=DIMENSIONS, echo=False):
             all_hit = ray_tools.all_hit_by(coord, ray_lookup_table)
             hit_sets[coord] = all_hit
         if echo:
-            print "    hit sets:", hit_sets
+            print("    hit sets:", hit_sets)
 
-        print "    UNIQUIFYING"
+        print("    UNIQUIFYING")
         for coord in shell:
             ours = hit_sets[coord]
-            theirs = set(e for s in [val for (key, val) in [(k,v) for (k,v) in hit_sets.items() if k != coord]] for e in s)
+            theirs = set(e for s in [val for (key, val) in [(k,v) for (k,v) in list(hit_sets.items()) if k != coord]] for e in s)
             unique = ours - theirs
             try:
                 next_shell = shells[i+1]
@@ -112,11 +112,11 @@ def generate_uniques(shells, radius=RADIUS, dimensions=DIMENSIONS, echo=False):
                 next_shell = set()
             unique_next = unique & next_shell
             if echo:
-                print "      ours:", ours
-                print "      theirs:", theirs
-                print "      unique to {}: {}".format(coord, unique)
-                print "      restricted to next shell: {}".format(unique_next)
-                print
+                print("      ours:", ours)
+                print("      theirs:", theirs)
+                print("      unique to {}: {}".format(coord, unique))
+                print("      restricted to next shell: {}".format(unique_next))
+                print()
             uniques[coord] = unique_next
 
     return (uniques, number_of_coords)
@@ -165,7 +165,7 @@ class ViewFastDataView(object):
 
         self.size = len(self.data)
 
-        print vars(self)
+        print(vars(self))
 
         self.reset()
 
@@ -229,16 +229,16 @@ def new(radius, dimensions):
 
 def generate_data(radius=RADIUS, dimensions=DIMENSIONS):
 
-    print "Generating shells..."
+    print("Generating shells...")
     shells = generate_shells(radius, dimensions)
-    print "shells:", shells
+    print("shells:", shells)
 
-    print "Generating uniques..."
+    print("Generating uniques...")
     (uniques, number_of_coords) = generate_uniques(shells, radius, dimensions)
-    print "uniques:", uniques
+    print("uniques:", uniques)
 
     for k in sorted(uniques, key=lambda k: len(uniques[k])):
-        print k, uniques[k]
+        print(k, uniques[k])
 
     all_coords = set(uniques.keys())
     assert len(all_coords) == number_of_coords
@@ -246,15 +246,15 @@ def generate_data(radius=RADIUS, dimensions=DIMENSIONS):
     # add origin
     uniques[ORIGIN] = all_coords
     number_of_coords += 1
-    print "UPDATED uniques:", uniques
+    print("UPDATED uniques:", uniques)
 
     (frame_bytes, (coord_bytes, coord_form, offset_bytes)) = bytes_per_frame(number_of_coords)
 
-    print "NOC:", number_of_coords
-    print "FB:", frame_bytes
-    print "CB:", coord_bytes
-    print "CF:", coord_form
-    print "OB:", offset_bytes
+    print("NOC:", number_of_coords)
+    print("FB:", frame_bytes)
+    print("CB:", coord_bytes)
+    print("CF:", coord_form)
+    print("OB:", offset_bytes)
 
     bytes_per_coord = coord_form[0]
 
@@ -270,7 +270,7 @@ def generate_data(radius=RADIUS, dimensions=DIMENSIONS):
     data += int_to_string(radius, 1)          #          RADIUS BOUND TO 256 HERE
     data += generate_data_recursive([ORIGIN], uniques, former) 
 
-    print map(int, data)
+    print(list(map(int, data)))
 
     with open("TEST.txt", 'w') as f:
         f.write(data)
@@ -280,9 +280,9 @@ def generate_data(radius=RADIUS, dimensions=DIMENSIONS):
 if __name__ == '__main__':
     # print generate_shells(3)
     # print generate_all_rays(coord_gen_utils.shell_wrap(2))
-    print bytes_per_frame(1)
-    print bytes_per_frame(13)
-    print bytes_per_frame(255)
-    print bytes_per_frame(256)
-    print generate_data()
+    print(bytes_per_frame(1))
+    print(bytes_per_frame(13))
+    print(bytes_per_frame(255))
+    print(bytes_per_frame(256))
+    print(generate_data())
 

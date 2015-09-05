@@ -23,7 +23,7 @@ PARAM_EXCEPTIONS = ["spawns"]   # <---<<< these are ignored -- equiv. to comment
 
 def load_attributes():
     attributes = json.loads(open(settings.ATTRIBUTES_PATH).read())
-    for (_, attr) in attributes.items():
+    for (_, attr) in list(attributes.items()):
         # ... name ...
         validation.validate_attribute(attr) # <3
     data.ATTRIBUTES.update(attributes)
@@ -31,7 +31,7 @@ def load_attributes():
 def load_parameters():
     parameters = json.loads(open(settings.PARAMETERS_PATH).read())
 
-    for (name, param) in parameters.items():
+    for (name, param) in list(parameters.items()):
         # ... name ...
         assert name not in data.ATTRIBUTES
         validation.validate_parameter(param) # <3
@@ -48,10 +48,10 @@ def validate_and_save_objects(objects):
     defaults = objects.get(DEFAULT_INDICATOR, {})
     objects.pop(DEFAULT_INDICATOR, None)
 
-    for (obj_name, obj) in objects.items():
+    for (obj_name, obj) in list(objects.items()):
         printdebug('-'*20)
         printdebug("ON/O: {}/{}".format(obj_name, obj))
-        for (param, val) in obj.items():
+        for (param, val) in list(obj.items()):
             printdebug("PARAM/VAL: {}/{}".format(param, val))
             if param in PARAM_EXCEPTIONS:
                 printdebug("*IGNORING*")
@@ -79,10 +79,10 @@ def validate_and_save_nodes(nodes):
     defaults = nodes.get(DEFAULT_INDICATOR, {})
     nodes.pop(DEFAULT_INDICATOR, None)
 
-    for (node_name, node) in nodes.items():
+    for (node_name, node) in list(nodes.items()):
         printdebug('-'*20)
         printdebug("NN/N: {}/{}".format(node_name, node))
-        for (param, val) in node.items():
+        for (param, val) in list(node.items()):
             printdebug("PARAM/VAL: {}/{}".format(param, val))
             if param in PARAM_EXCEPTIONS:
                 printdebug("*IGNORING*")
@@ -127,7 +127,7 @@ def load(path):
     if path.endswith(os.path.sep):
         files = load_path(key)
         for filename in files:
-            print("... Loading {}...".format(filename))
+            print(("... Loading {}...".format(filename)))
             validate_and_save_objects(load_file(os.path.join(path, filename)))
     elif path.endswith('nodes'):
         node_data = load_file(path + '.json')
@@ -145,7 +145,7 @@ def load_all():
     print("Loading load order...")
     rest = load_order()
     for each in rest:
-        print("Loading {}...".format(each))
+        print(("Loading {}...".format(each)))
         load(each)
 
 if __name__ == '__main__':

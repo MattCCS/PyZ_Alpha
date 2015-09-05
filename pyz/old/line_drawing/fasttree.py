@@ -49,7 +49,7 @@ def gen_new(radius, dimensions):
     # TODO:
     # DOES NOT INCLUDE (0,0) !!!
     # is that ok?
-    print("Generating radius:{} dimensions:{}".format(radius, dimensions))
+    print(("Generating radius:{} dimensions:{}".format(radius, dimensions)))
 
     print("Generating all points...")
     all_points = coord_gen_utils.shell_coords(0, radius, dimensions)
@@ -73,7 +73,7 @@ def gen_new(radius, dimensions):
 
     print("[!] Forming angle table...")
     # we include BOTH end angles!
-    angle_table_2D = [set(c for c in table.iterkeys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in range(360)]
+    angle_table_2D = [set(c for c in table.keys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in range(360)]
 
     print("done.")
     return SimpleView(table, radius, dimensions), angle_table_2D
@@ -83,7 +83,7 @@ def gen_new(radius, dimensions):
 def gen_new_all(radii=[8,12,16,24,32], dimensions=[2]):
     for dim in dimensions:
         for rad in radii:
-            print("Generating/saving radius:{} dimensions:{}".format(rad, dim))
+            print(("Generating/saving radius:{} dimensions:{}".format(rad, dim)))
             save(gen_new(rad, dim))
 
 ####################################
@@ -91,11 +91,11 @@ def gen_new_all(radii=[8,12,16,24,32], dimensions=[2]):
 if __name__ == '__main__':
     (sv, at) = gen_new(8,2)
     print(sv)
-    print(sv.save())
+    print((sv.save()))
     print(at)
 
-    print(coords_between_angles_2D(at, *angles_around_angle_2D(15, 5)))
-    print(coords_around_2D(at, 15, 5))
+    print((coords_between_angles_2D(at, *angles_around_angle_2D(15, 5))))
+    print((coords_around_2D(at, 15, 5)))
 
     # gen_new_all()
     # gen_new_all(radii=[8,12,16,24,32], dimensions=[3])

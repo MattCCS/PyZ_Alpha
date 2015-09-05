@@ -58,7 +58,7 @@ def all_hit_by(start, ray_lookup_table):
     if start in hit:
         hit.remove(start)
     else:
-        print("START NOT IN RAY...?", start)
+        print(("START NOT IN RAY...?", start))
 
     return hit
 
@@ -76,7 +76,7 @@ def save_rays(n, dims=2):
     print("done.")
     
     l = len(S)
-    print("Endpoints: {}".format(l))
+    print(("Endpoints: {}".format(l)))
 
     print("Generating all paths to points...")
     g = all_paths_to_points(S, listify=True)

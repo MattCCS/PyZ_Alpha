@@ -203,7 +203,7 @@ def logwrap(func):
             # SOURCE: http://stackoverflow.com/questions/9005941/python-exception-decorator-how-to-preserve-stacktrace
             _META_LOGGER.debug("<{}> threw error: {}\n".format(func.__name__, traceback.format_exc()))
             (errorobj, errortype, errtraceback) = sys.exc_info()  # error/type/traceback
-            raise (errorobj, errortype, errtraceback)
+            raise errorobj
 
     return wrapped
 

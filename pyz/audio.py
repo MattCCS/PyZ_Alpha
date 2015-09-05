@@ -7,7 +7,7 @@ import threading
 import time
 
 if __name__ == '__main__':
-    import settings
+    from . import settings
 else:
     from pyz import settings
 

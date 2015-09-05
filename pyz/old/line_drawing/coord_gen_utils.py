@@ -32,9 +32,9 @@ def shell_coords(min_dist, max_dist, dimensions=2):
     high_bound = max_dist ** 2
     low_bound  = min_dist ** 2
 
-    possible_not_max = range(max_dist)  # UP TO (but not including) MAX_DIST
+    possible_not_max = list(range(max_dist))  # UP TO (but not including) MAX_DIST
 
-    pow_sum_op = lambda p: sum(map(lambda n:n**2, p))
+    pow_sum_op = lambda p: sum([n**2 for n in p])
 
     found = set()
 
@@ -119,7 +119,7 @@ def save_rays(n, dims=2):
     print("done.")
     
     l = len(S)
-    print("Endpoints: {}".format(l))
+    print(("Endpoints: {}".format(l)))
 
     print("Generating all paths to points...")
     g = all_paths_to_points(S, listify=True)

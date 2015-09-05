@@ -36,9 +36,9 @@ class DataObject(object):
         Sets the default fields of this DataObject onto the given object.
         """
 
-        for attr in ATTRIBUTES.keys():
+        for attr in list(ATTRIBUTES.keys()):
             setattr(obj, attr, False)
-        for (key, val) in vars(self).items():
+        for (key, val) in list(vars(self).items()):
             setattr(obj, key, val)
         if "colors" in vars(self):
             # obj.color = colors.lookup(random.choice(self.colors))

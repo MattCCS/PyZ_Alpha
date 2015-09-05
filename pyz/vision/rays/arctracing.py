@@ -78,4 +78,4 @@ if __name__ == '__main__':
     #           save the global angle table!
 
     coord = (7,3)
-    print(BLOCKTABLE[coord])
+    print((BLOCKTABLE[coord]))

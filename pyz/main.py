@@ -48,7 +48,7 @@ def mainwrapped(stdscr):
     audio.stop_all_sounds()
     curses_prep.curses.curs_set(1)
 
-    print("\n"*(Y + 10))
+    print(("\n"*(Y + 10)))
 
 @log.logwrap
 def main():

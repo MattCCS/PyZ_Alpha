@@ -25,6 +25,6 @@ def all_hit_by(start, ray_lookup_table):
     if start in hit:
         hit.remove(start)
     else:
-        print "START NOT IN RAY...?", start
+        print("START NOT IN RAY...?", start)
 
     return hit

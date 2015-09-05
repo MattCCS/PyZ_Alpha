@@ -38,7 +38,7 @@ BODY = """\
  / \\
  | |""".split('\n')
 
-BODY = u"""\
+BODY = """\
  /⎺\\ 
  \\_/ 
  -o- 
@@ -96,7 +96,7 @@ def say(s, r=400):
 
 class Node2D(object):
 
-    HIDDEN = u'█'
+    HIDDEN = '█'
     ERROR  = '!'
 
     def __init__(self, parentgrid, coord):
@@ -315,7 +315,7 @@ class Grid2D:
 
                     if not (x, y) in self.nodes:
                         try:
-                            layer.set(fx, fy, u'█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
+                            layer.set(fx, fy, '█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
                         except curses.error:
                             pass
                         # pass
@@ -362,11 +362,11 @@ class Grid2D:
                 if self.player.prefs.auto_attack and self.player.weapon:
                     self.player.weapon.attack_NODE(self.nodes[(x,y)], self, self.stdscr, (x,y))
 
-        elif key in map(ord, 'sS'):
+        elif key in list(map(ord, 'sS')):
             # toggle sneak/walk/sprint
             self.player_sneakwalksprint = (self.player_sneakwalksprint + 1) % 3
             audio.play('weapons/trigger.aif', volume=0.2)
-        elif key in map(ord, 'zZ'):
+        elif key in list(map(ord, 'zZ')):
             # lower
             if self.player_stand_state > 0:
                 self.player_stand_state -= 1
@@ -374,7 +374,7 @@ class Grid2D:
                     audio.play('movement/changing/prone.aif')
                 else:
                     audio.play('movement/changing/nonprone.aif')
-        elif key in map(ord, 'xX'):
+        elif key in list(map(ord, 'xX')):
             # raise
             if self.player_stand_state < 2:
                 self.player_stand_state += 1
@@ -642,7 +642,7 @@ class Grid2D:
 def render_to(main_layer, stdscr):
     stdscr.erase()
 
-    for (x, y, (char, color, _)) in main_layer.items():
+    for (x, y, (char, color, _)) in list(main_layer.items()):
         try:
             stdscr.addstr(y, x, char, color)
         except curses.error:

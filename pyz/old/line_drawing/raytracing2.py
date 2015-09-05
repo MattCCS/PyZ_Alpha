@@ -33,9 +33,9 @@ def normalize(vector_fractions):
 
     factor = abs(1 / max_fract) # fraction
 
-    normalized_to_1 = map(lambda n: factor * n, vector_fractions)
+    normalized_to_1 = [factor * n for n in vector_fractions]
 
-    return map(lambda n: n / 2, normalized_to_1)  # normalized to 0.5
+    return [n / 2 for n in normalized_to_1]  # normalized to 0.5
     # return normalized_to_1
 
 # @profile
@@ -80,11 +80,11 @@ def gen_collision_path(slope_vector_fractions):
         return
 
     delta = normalize(slope_vector_fractions)
-    if max(map(abs, delta)) != 0.5:
-        print slope_vector_fractions, delta
+    if max(list(map(abs, delta))) != 0.5:
+        print(slope_vector_fractions, delta)
         raise RuntimeError("PROBLEM!  Probably supplied non-fractions.")
 
-    cases = map(case, delta)    # ALWAYS INTEGERS
+    cases = list(map(case, delta))    # ALWAYS INTEGERS
 
     mag = len(delta)
     new_coord = [0] * mag     # ALWAYS INTEGERS
@@ -101,25 +101,25 @@ def gen_collision_path(slope_vector_fractions):
 
 
 def string_to_vector(string):
-    return map(Fraction, string.split(','))
+    return list(map(Fraction, string.split(',')))
 
 
 def find_slope(origin, destination):
     delta = vector_diff(origin, destination)
 
-    return map(Fraction, delta)
+    return list(map(Fraction, delta))
 
 
 def vector_sum(v1, v2):
-    return map(lambda a,b: a+b, v1, v2)
+    return list(map(lambda a,b: a+b, v1, v2))
 
 
 def vector_diff(v1, v2):
-    return map(lambda a,b: b-a, v1, v2)
+    return list(map(lambda a,b: b-a, v1, v2))
 
 
 def vector_magnitude(vector):
-    return math.sqrt(sum(map(lambda n: n**2, vector)))
+    return math.sqrt(sum([n**2 for n in vector]))
 
 
 def vector_distance(v1, v2):
