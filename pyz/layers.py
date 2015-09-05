@@ -8,6 +8,10 @@ from collections import OrderedDict
 
 ####################################
 
+def say(s, r=400):
+    import subprocess
+    subprocess.check_output(['say', s, '-r', str(r)])
+
 DEFAULT_COLOR = "white"
 DEFAULT_MODE = curses.A_NORMAL
 
@@ -116,15 +120,20 @@ class LayerManager(object):
 
     ####################################
     # setting points
-    def set(self, x, y, char, color=None, mode=1, is_unicode=False):
-        """None is transparent"""
-        if not is_unicode:
-            assert char is None or len(char) == 1
+    def set(self, x, y, char, color=None, mode=1):
+        if type(char) is not int:
+            assert len(char) == 1
         self.points[(x,y)] = (
             char,
             color if color is not None else DEFAULT_COLOR,
             mode if mode is not None else DEFAULT_MODE,
             )
+
+    def unset(self, x, y):
+        try:
+            del self.points[(x,y)]
+        except KeyError:
+            pass
 
     ####################################
     # setting ranges

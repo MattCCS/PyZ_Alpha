@@ -30,8 +30,10 @@ LOGGER.info("----------BEGIN----------")
 
 ####################################
 
-if sys.version_info[0] == 2:
-    BODY = """\
+PYTHON2 = sys.version_info[0] == 2
+
+if PYTHON2:
+    BODY = u"""\
  /-\\ 
  \\_/ 
  -o-
@@ -40,7 +42,7 @@ if sys.version_info[0] == 2:
  / \\
  | |""".split('\n')
 else:
-    BODY = """\
+    BODY = u"""\
  /⎺\\ 
  \\_/ 
  -o- 
@@ -262,7 +264,7 @@ class Grid2D:
         self.player.flashlight = objects.Flashlight(24, 90, 15, self.player)
 
         lantern_coord = (17,9)
-        self.lightsources = [self.player.flashlight, objects.Lantern(8, None, lantern_coord)]
+        self.lightsources = [self.player.lantern, objects.Lantern(8, None, lantern_coord)]
         self.nodes[lantern_coord].set_dirt()
         self.nodes[lantern_coord].appearance = 'X'
         self.nodes[lantern_coord].color = "yellow"
@@ -312,7 +314,7 @@ class Grid2D:
                 fy = self.y_to_screen(y, py, h)
 
                 if not (x, y) in self.nodes:
-                    layer.set(fx, fy, u'█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
+                    layer.set(fx, fy, u'█', color=colors.fg_bg_to_index("white"))
                     # pass
                 elif not (x-px, y-py) in visible:
                     # TODO: what does this do?
@@ -635,9 +637,12 @@ class Grid2D:
 def render_to(main_layer, stdscr):
     stdscr.erase()
 
-    for (x, y, (char, color, _)) in list(main_layer.items()):
+    for (x, y, (char_or_code, color, _)) in list(main_layer.items()):
         try:
-            stdscr.addstr(y, x, char, color)
+            if type(char_or_code) is int:
+                stdscr.addch(y, x, char_or_code, color)
+            else:
+                stdscr.addstr(y, x, char_or_code if not PYTHON2 else char_or_code.encode(CODE), color)
         except curses.error:
             break
 
