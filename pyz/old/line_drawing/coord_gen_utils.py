@@ -32,7 +32,7 @@ def shell_coords(min_dist, max_dist, dimensions=2):
     high_bound = max_dist ** 2
     low_bound  = min_dist ** 2
 
-    possible_not_max = xrange(max_dist)  # UP TO (but not including) MAX_DIST
+    possible_not_max = range(max_dist)  # UP TO (but not including) MAX_DIST
 
     pow_sum_op = lambda p: sum(map(lambda n:n**2, p))
 
@@ -48,7 +48,7 @@ def shell_coords(min_dist, max_dist, dimensions=2):
         
         # don't bother unless you hit the minimum
         # don't include the high bound
-        for i in xrange(int(min_dist/1.5), max_dist):  # /sqrt(2), really.
+        for i in range(int(min_dist/1.5), max_dist):  # /sqrt(2), really.
 
             tup = rest + (i,)
 

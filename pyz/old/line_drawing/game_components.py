@@ -116,7 +116,7 @@ def yield_coords(range_nums):
     first = range_nums[0]
     rest  = range_nums[1:]
 
-    for n in xrange(first):
+    for n in range(first):
         for coord in yield_coords(rest):
             yield (n,) + coord
 
@@ -136,8 +136,8 @@ class Grid2D:
         self.y = y
 
         # # make plane
-        # gen_row     = lambda n: [Node2D(3) for i in xrange(n)]
-        # gen_plane   = lambda x,y: [gen_row(x) for i in xrange(y)]
+        # gen_row     = lambda n: [Node2D(3) for i in range(n)]
+        # gen_plane   = lambda x,y: [gen_row(x) for i in range(y)]
         # self.nodes = gen_plane(x,y)
         self.nodes = {coord : Node2D(3) for coord in yield_coords( (self.x, self.y) )}
 
@@ -168,8 +168,8 @@ class Grid2D:
     def frame_coords_2D(self):
         # ABSOLUTE
 
-        for y in xrange(self.y-1, 0-1, -1):
-            yield [(x,y) for x in xrange(self.x)]
+        for y in range(self.y-1, 0-1, -1):
+            yield [(x,y) for x in range(self.x)]
 
     def render(self, visible):
 
@@ -321,7 +321,7 @@ def main():
         blocked = set()
 
         if PLAY == 1:
-            for _ in xrange(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
+            for _ in range(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
                 (x,y) = (random.randint(0,X-2), random.randint(0,Y-2))
                 blocked.add((x,y))
                 # blocked.add((x,y+1))

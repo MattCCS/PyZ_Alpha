@@ -34,10 +34,10 @@ def union_all(sets):
 def form_angle_table_2D(coords, accuracy):
     # V1
     # slower, but guaranteed symmetrical
-    # return [set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
+    # return [set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1) for ang in range(360)]
 
     # table = []
-    # for ang in xrange(360):
+    # for ang in range(360):
     #     sub = set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1)
     #     table.append(sub)
     #     print ang, len(coords)
@@ -46,7 +46,7 @@ def form_angle_table_2D(coords, accuracy):
     # V2
     # faster, but may be asymmetrical?  maybe not?  depends on process/bounds.  test it out.
     table = []
-    for ang in xrange(360):
+    for ang in range(360):
         sub = set(c for c in coords if ang <= convert_2D_coord_to_angle(c) <= ang+1)
         table.append(sub)
         coords.difference_update(sub)

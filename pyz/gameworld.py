@@ -45,7 +45,7 @@ BODY = u"""\
 ⎛ | ⎞
   o  
  ⎛ ⎞ 
- ⎜ ⎟ """.encode(CODE).split('\n')
+ ⎜ ⎟ """.split('\n')
 
 # print BODY
 # print '\n'.join(BODY)
@@ -178,7 +178,7 @@ def yield_coords(range_nums):
     first = range_nums[0]
     rest  = range_nums[1:]
 
-    for n in xrange(first):
+    for n in range(first):
         for coord in yield_coords(rest):
             yield (n,) + coord
 
@@ -220,7 +220,7 @@ class Grid2D:
 
         # make trees
         self.blocked = set()
-        for _ in xrange(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
+        for _ in range(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
             coord = (random.randint(0,x-2), random.randint(0,y-2))
             self.blocked.add(coord)
             self.nodes[coord].set_tree()
@@ -281,8 +281,8 @@ class Grid2D:
     def frame_coords_2D(self, width, height):
         (px, py) = self.player.position()
 
-        for y in xrange(py-height/2, py+height/2+1):
-            yield [(x,y) for x in xrange(px-width/2, px+width/2+1)]
+        for y in range(py-height/2, py+height/2+1):
+            yield [(x,y) for x in range(px-width/2, px+width/2+1)]
 
     def x_to_screen(self, x, px, width, BORDER_OFFSET_X=1, spacing=2):
         return x*spacing - px*spacing + width/2 # + BORDER_OFFSET_X

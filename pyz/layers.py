@@ -154,8 +154,8 @@ class LayerManager(object):
     ####################################
     # iterating over lines
     def yield_rows_with_none(self):
-        for y in xrange(self.h):
-            yield (self.points.get((x,y), None) for x in xrange(self.w))
+        for y in range(self.h):
+            yield (self.points.get((x,y), None) for x in range(self.w))
 
     def items(self):
 
@@ -237,8 +237,8 @@ class LayerManager(object):
 
     def yield_rows_with_none(self):
         points = self.render_dict()
-        for y in xrange(self.h):
-            yield (points.get((x,y), None) for x in xrange(self.w))
+        for y in range(self.h):
+            yield (points.get((x,y), None) for x in range(self.w))
 
     def debugrender(self, space=True):
         return '\n'.join((' ' if space else '').join((p[0] if p is not None else ' ') for p in row) for row in self.yield_rows_with_none())
@@ -268,7 +268,7 @@ def add_border(layer, chars='++++-|-|', color=None):
 
     layer.setrange(0,   0, '{}{}{}'.format(tl,   up*(x-2), tr), color=color)
     layer.setrange(0, y-1, '{}{}{}'.format(bl, down*(x-2), br), color=color)
-    for oy in xrange(y-2):
+    for oy in range(y-2):
         layer.set(  0, oy+1,  left, color=color)
         layer.set(x-1, oy+1, right, color=color)
 

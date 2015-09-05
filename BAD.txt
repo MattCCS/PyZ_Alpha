@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 634, in play
+    self.playwrap()
+  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 603, in playwrap
+    self.render_frame()
+  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 531, in render_frame
+    self.render_grid(self.visible)
+  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 308, in render_grid
+    for row in self.frame_coords_2D(w,h):
+  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 284, in frame_coords_2D
+    for y in range(py-height/2, py+height/2+1):
+TypeError: 'float' object cannot be interpreted as an integer

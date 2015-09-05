@@ -39,7 +39,7 @@ def _true_terminal_size():
     return (int(columns), int(rows))
 
 def true_terminal_size():
-    for i in xrange(10):
+    for i in range(10):
         try:
             return _true_terminal_size()
         except TimesUpException:

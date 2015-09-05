@@ -73,7 +73,7 @@ def gen_new(radius, dimensions):
 
     print("[!] Forming angle table...")
     # we include BOTH end angles!
-    angle_table_2D = [set(c for c in table.iterkeys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
+    angle_table_2D = [set(c for c in table.iterkeys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in range(360)]
 
     print("done.")
     return SimpleView(table, radius, dimensions), angle_table_2D

@@ -51,7 +51,7 @@ def generate_shells(radius, dimensions=2):
     (does not include the origin)
     (does not include the radius)
     """
-    return [coord_gen_utils.shell_wrap(i, dimensions=dimensions) for i in xrange(1, radius)]
+    return [coord_gen_utils.shell_wrap(i, dimensions=dimensions) for i in range(1, radius)]
 
 ####################################
 
@@ -188,7 +188,7 @@ class ViewFastDataView(object):
             raise StopIteration
 
         # these walk forward
-        coords = tuple((self.read(self.bytes_per_coord) - self.radius) for _ in xrange(self.dimensions))
+        coords = tuple((self.read(self.bytes_per_coord) - self.radius) for _ in range(self.dimensions))
         offset = self.read(self.offset_bytes)
 
         return (coords, offset)

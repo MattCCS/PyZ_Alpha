@@ -52,7 +52,7 @@ def get_duration(path):
 
 def _rough_loop(path, times, factor=0.9, volume=1.0):
     dur = get_duration(path)
-    for _ in xrange(times):
+    for _ in range(times):
         if not LOOP:
             break
         _play(path, volume=volume)

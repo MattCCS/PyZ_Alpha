@@ -9,7 +9,7 @@ def islice_fixed(it, cap=-1, fill=None):
             except StopIteration:
                 return
     else:
-        for i in xrange(cap):
+        for i in range(cap):
             try:
                 yield next(it)
             except StopIteration:
@@ -24,7 +24,7 @@ def yield_parallel(*its):
     for it in its:
 
         # deplete first N from each iterator
-        for _ in xrange(done_so_far):
+        for _ in range(done_so_far):
             try:
                 next(it)
             except StopIteration:
