@@ -281,14 +281,14 @@ class Grid2D:
     def frame_coords_2D(self, width, height):
         (px, py) = self.player.position()
 
-        for y in range(py-height/2, py+height/2+1):
-            yield [(x,y) for x in range(px-width/2, px+width/2+1)]
+        for y in range(py-height//2, py+height//2+1):
+            yield [(x,y) for x in range(px-width//2, px+width//2+1)]
 
     def x_to_screen(self, x, px, width, BORDER_OFFSET_X=1, spacing=2):
-        return x*spacing - px*spacing + width/2 # + BORDER_OFFSET_X
+        return x*spacing - px*spacing + width//2 # + BORDER_OFFSET_X
 
     def y_to_screen(self, y, py, height, BORDER_OFFSET_Y=1):
-        return height/2 - y + py # - BORDER_OFFSET_Y - 1
+        return height//2 - y + py # - BORDER_OFFSET_Y - 1
 
     def xy_to_screen(self, coord, ppos, width, height, spacing=2, BORDER_OFFSET_X=1, BORDER_OFFSET_Y=1):
         (x,y) = coord

@@ -48,7 +48,7 @@ def random_file_from_dir(path):
 
 def get_duration(path):
     data = subprocess.check_output(['afinfo', path])
-    return float(re.search(r'estimated duration: ([^\s]+)\s', data).group(1)) # seconds
+    return float(re.search(r'estimated duration: ([^\s]+)\s', data.decode('utf-8')).group(1)) # seconds
 
 def _rough_loop(path, times, factor=0.9, volume=1.0):
     dur = get_duration(path)
