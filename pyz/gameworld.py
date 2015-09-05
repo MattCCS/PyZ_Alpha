@@ -51,6 +51,8 @@ else:
  ⎛ ⎞ 
  ⎜ ⎟ """.split('\n')
 
+BORDER_BLOCK = u'█'
+
 ####################################
 
 BLOCK_CHANCE_MIN = 20
@@ -314,7 +316,7 @@ class Grid2D:
                 fy = self.y_to_screen(y, py, h)
 
                 if not (x, y) in self.nodes:
-                    layer.set(fx, fy, u'█', color=colors.fg_bg_to_index("white"))
+                    layer.set(fx, fy, BORDER_BLOCK, color=colors.fg_bg_to_index("white"))
                     # pass
                 elif not (x-px, y-py) in visible:
                     # TODO: what does this do?
@@ -581,6 +583,8 @@ class Grid2D:
     def playwrap(self):
 
         # print "Playing..."
+
+        layers.set_curses_border()
 
         MAIN = layers.LayerManager("main", (80,24),
             sublayers=[

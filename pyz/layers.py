@@ -256,11 +256,13 @@ class LayerManager(object):
 
 # there will be, after initscr
 
-CURSES_BORDER = []
+CHARSETS = {
+    "curses" : [],
+    "ascii"  : '++++-|-|',
+}
 
 def set_curses_border():
-    global CURSES_BORDER
-    CURSES_BORDER = [
+    CHARSETS['curses'] = [
         curses.ACS_ULCORNER,
         curses.ACS_URCORNER,
         curses.ACS_LLCORNER,
@@ -271,12 +273,16 @@ def set_curses_border():
         curses.ACS_VLINE,
     ]
 
-def add_border(layer, chars='++++-|-|', color=None):
+def add_border(layer, charset='curses', chars=None, color=None):
+    if chars:
+        charset = chars
+    else:
+        charset = CHARSETS[charset]
     (x,y) = layer.size()
-    tl, tr, bl, br, up, right, down, left = chars
+    tl, tr, bl, br, up, right, down, left = charset
 
-    layer.setrange(0,   0, '{}{}{}'.format(tl,   up*(x-2), tr), color=color)
-    layer.setrange(0, y-1, '{}{}{}'.format(bl, down*(x-2), br), color=color)
+    layer.setrange(0,   0, [tl]+[up]*(x-2)+[tr], color=color)
+    layer.setrange(0, y-1, [bl]+[down]*(x-2)+[br], color=color)
     for oy in range(y-2):
         layer.set(  0, oy+1,  left, color=color)
         layer.set(x-1, oy+1, right, color=color)
