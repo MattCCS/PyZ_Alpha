@@ -9,9 +9,9 @@ class Event(object):
     Does nothing when dead, but should be removed.
     """
 
-    def __init__(self, grid, stdscr, coord):
+    def __init__(self, grid, layer, coord):
         self.grid = grid
-        self.screen = stdscr
+        self.screen = layer
         self.coord = coord
 
         self.dead = False
@@ -23,8 +23,8 @@ class Event(object):
 
 class GenericInteractVisualEvent(Event):
 
-    def __init__(self, grid, stdscr, coord):
-        Event.__init__(self, grid, stdscr, coord)
+    def __init__(self, grid, layer, coord):
+        Event.__init__(self, grid, layer, coord)
         grid.requested_waits.append(0.1)
 
         self.ticks = 2
@@ -49,8 +49,8 @@ class GenericInteractVisualEvent(Event):
 
 class GenericFocusEvent(Event):
 
-    def __init__(self, grid, stdscr, coord):
-        Event.__init__(self, grid, stdscr, coord)
+    def __init__(self, grid, layer, coord):
+        Event.__init__(self, grid, layer, coord)
 
         self.step()
 
@@ -65,8 +65,8 @@ class GenericFocusEvent(Event):
 
 class FacingEvent(Event):
 
-    def __init__(self, grid, stdscr, coord, arc, start, target, speed):
-        Event.__init__(self, grid, stdscr, coord)
+    def __init__(self, grid, layer, coord, arc, start, target, speed):
+        Event.__init__(self, grid, layer, coord)
 
         assert 0 <= (start + target) <= 720
         assert speed > 0

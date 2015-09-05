@@ -266,7 +266,7 @@ class Grid2D:
         self.player.flashlight = objects.Flashlight(24, 90, 15, self.player)
 
         lantern_coord = (17,9)
-        self.lightsources = [self.player.lantern, objects.Lantern(8, None, lantern_coord)]
+        self.lightsources = [self.player.flashlight, objects.Lantern(8, None, lantern_coord)]
         self.nodes[lantern_coord].set_dirt()
         self.nodes[lantern_coord].appearance = 'X'
         self.nodes[lantern_coord].color = "yellow"
@@ -357,7 +357,7 @@ class Grid2D:
             else:
                 # it's an obstacle!  AKA gameobject
                 if self.player.prefs.auto_attack and self.player.weapon:
-                    self.player.weapon.attack_NODE(self.nodes[(x,y)], self, self.stdscr, (x,y))
+                    self.player.weapon.attack_NODE(self.nodes[(x,y)], self, layers.get("gameworld"), (x,y))
 
         elif key in list(map(ord, 'sS')):
             # toggle sneak/walk/sprint
@@ -518,10 +518,9 @@ class Grid2D:
         # META-RENDERING
 
         # modifiers
-        # TODO:
-        # for event in self.visual_events_bottom:
-        #     event.step()
-        # self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
+        for event in self.visual_events_bottom:
+            event.step()
+        self.visual_events_bottom = [event for event in self.visual_events_bottom if not event.dead]
 
         # background
         self.determine_visible()
@@ -531,32 +530,32 @@ class Grid2D:
         self.render_player()
 
         # exceptions
-        # TODO:
-        # for event in self.visual_events_top:
-        #     event.step()
-        # self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
+        for event in self.visual_events_top:
+            event.step()
+        self.visual_events_top = [event for event in self.visual_events_top if not event.dead]
 
         # foreground
         # TODO:
         # if not (self._truex, self._truey) == true_terminal_size():
         #     print '\a'
 
+    def render_cycle(self):
 
-    # def render(self):
-    #     """
-    #     TICKS visual events!
-    #     """
+        self.render_frame()
+        self.render_GUI()
+        render_to(layers.get("main"), self.stdscr)
 
-    #     self.render_frame()
+    def render(self):
+        """
+        TICKS visual events!
+        """
 
-    #     while self.has_visual_events():
+        self.render_cycle()
+        while self.has_visual_events():
 
-    #         time.sleep(self.visual_requested_wait())
+            time.sleep(self.visual_requested_wait())
 
-    #         self.stdscr.erase()
-
-    #         self.render_frame() # this *must* decrement all visual events.
-
+            self.render_cycle()
 
 
     def render_GUI(self):
@@ -599,9 +598,7 @@ class Grid2D:
 
         self.update_viewport(sound=False)
         self.tick('')  # start
-        self.render_frame()
-        self.render_GUI()
-        render_to(MAIN, self.stdscr)
+        self.render()
 
         try:
             while True:
@@ -620,9 +617,8 @@ class Grid2D:
                 self.tick(key)
 
                 # render
-                self.render_frame()
-                self.render_GUI()
-                render_to(MAIN, self.stdscr)
+                self.render()
+
         except KeyboardInterrupt:
             print("User quit.")
 

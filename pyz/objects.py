@@ -34,7 +34,7 @@ class GameObject(object):
     def set_position(self, coord):
         self._position = coord
 
-    def age(self, grid, stdscr):
+    def age(self, grid, layer):
         pass
 
 
@@ -52,7 +52,7 @@ class Item(GameObject):
         GameObject.__init__(self, parent, position)
         Item.record.append(self)
 
-    def age(self, grid, stdscr):
+    def age(self, grid, layer):
         pass
 
 # TODO
@@ -71,7 +71,7 @@ class Lantern(Item, sightradius.SightRadius2D):
         self.lifetick = 10
         self.ticks = self.lifetick
 
-    def age(self, grid, stdscr):
+    def age(self, grid, layer):
         if not self.can_age:
             return
 
@@ -121,10 +121,10 @@ class Flashlight(Item, sightradius.ArcLight2D):
     def facing_away(self):
         return abs(self.target_angle_diff() - self.angle) > self.focus_threshold
 
-    def update(self, grid, stdscr):
+    def update(self, grid, layer):
         target = self.target_angle_diff()
-        grid.visual_events_bottom.append(events.FacingEvent(grid, stdscr, None, self, self.angle, target, self.focus_speed))
-        grid.visual_events_top.append(events.GenericFocusEvent(grid, stdscr, self.focus))
+        grid.visual_events_bottom.append(events.FacingEvent(grid, layer, None, self, self.angle, target, self.focus_speed))
+        grid.visual_events_top.append(events.GenericFocusEvent(grid, layer, self.focus))
     
     @log.logwrap
     def update_direction(self, direction):
@@ -140,9 +140,9 @@ class Flashlight(Item, sightradius.ArcLight2D):
         elif direction == (0,-1):
             self.angle = 270
 
-    def age(self, grid, stdscr):
+    def age(self, grid, layer):
         if self.on and self.facing_away() and self.is_focusing():
-            self.update(grid, stdscr)
+            self.update(grid, layer)
 
 
 class Container(Item):
@@ -181,12 +181,12 @@ class Weapon(Item):
         self.damagetype = damagetype # damagetype vs beats??
 
     @log.logwrap
-    def attack_NODE(self, node, grid, stdscr, coord):
+    def attack_NODE(self, node, grid, layer, coord):
         # damage conditional on material?
         if node.material in self.beats:
             audio.play_attack(self.typ, node.material)
             node.damage(self.damage)
-            # grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, stdscr, coord))
+            grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, layer, coord))
 
 WEAPONS = {}
 WEAPONS['axe1'] = Weapon('axe', ['cloth', 'wood'], 1, 'slicing')
