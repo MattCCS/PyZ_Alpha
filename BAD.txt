@@ -1,8 +1,10 @@
 Traceback (most recent call last):
-  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 634, in play
+  File "pyz/gameworld.py", line 628, in play
     self.playwrap()
-  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 605, in playwrap
-    render_to(MAIN, self.stdscr)
-  File "/Users/Matt/PYTHON_FILES/MY_PACKAGES/PyZ/pyz/gameworld.py", line 647, in render_to
-    stdscr.addstr(y, x, char, color)
-TypeError: integer argument expected, got float
+  File "pyz/gameworld.py", line 597, in playwrap
+    self.render_frame()
+  File "pyz/gameworld.py", line 525, in render_frame
+    self.render_grid(self.visible)
+  File "pyz/gameworld.py", line 316, in render_grid
+    layer.set(fx, fy, '█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xe2 in position 0: ordinal not in range(128)

@@ -6,18 +6,10 @@
 # NOTE:  always run me as: "./run"
 ####################################
 
-if [ $# -eq 0 ]; then
-    python -B -m pyz.main
-fi
-
-if [ $# -eq 1 ] && [ $1 -eq 1 ]; then
-    python -B -m pyz.main 1> stdout.log
+if [ $# -eq 0 ] || ( [ $# -eq 1 ] && [ $1 -eq 3 ] ); then
+    python3 -B -m pyz.main
 fi
 
 if [ $# -eq 1 ] && [ $1 -eq 2 ]; then
-    python -B -m pyz.main 2> stderr.log
-fi
-
-if [ $# -eq 1 ] && [ $1 -eq 3 ]; then
-    python -B -m pyz.main 1> stdout.log 2> stderr.log
+    python2 -B -m pyz.main
 fi

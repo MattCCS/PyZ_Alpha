@@ -57,5 +57,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # printsl(u'\u2588'*100)
     main()

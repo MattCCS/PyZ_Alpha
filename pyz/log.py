@@ -82,7 +82,7 @@ class MattsCustomFormatter(logging.Formatter):
 
         ####################################
         # establish the indent
-        indent = bytearray('...') * (len(stack) - self.baseline)
+        indent = bytearray(b'...') * (len(stack) - self.baseline)
         if indent:
             indent[0] = ' '
         record.indent = indent

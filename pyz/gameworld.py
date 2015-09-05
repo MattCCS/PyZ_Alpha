@@ -2,6 +2,7 @@
 
 import random
 import time
+import sys
 
 from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
@@ -29,7 +30,8 @@ LOGGER.info("----------BEGIN----------")
 
 ####################################
 
-BODY = """\
+if sys.version_info[0] == 2:
+    BODY = """\
  /-\\ 
  \\_/ 
  -o-
@@ -37,8 +39,8 @@ BODY = """\
   o
  / \\
  | |""".split('\n')
-
-BODY = """\
+else:
+    BODY = """\
  /⎺\\ 
  \\_/ 
  -o- 
@@ -46,9 +48,6 @@ BODY = """\
   o  
  ⎛ ⎞ 
  ⎜ ⎟ """.split('\n')
-
-# print BODY
-# print '\n'.join(BODY)
 
 ####################################
 
@@ -307,31 +306,25 @@ class Grid2D:
 
         for row in self.frame_coords_2D(w,h):
 
-            try:
-                for (x,y) in row:
+            for (x,y) in row:
 
-                    fx = self.x_to_screen(x, px, w, spacing=self.spacing)
-                    fy = self.y_to_screen(y, py, h)
+                fx = self.x_to_screen(x, px, w, spacing=self.spacing)
+                fy = self.y_to_screen(y, py, h)
 
-                    if not (x, y) in self.nodes:
-                        try:
-                            layer.set(fx, fy, '█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
-                        except curses.error:
-                            pass
-                        # pass
-                    elif not (x-px, y-py) in visible:
-                        # X/Y are REAL coords (non-relative)
-                        # so to check for visibility, we have to relativize them
-                        pass
-                    else:
-                        try:
-                            self.nodes[(x,y)].render(layer, fx, fy)
-                            # self.nodes[(x+self.x/2,y+self.y/2)].render(stdscr, x*2, y)
-                        except KeyError:
-                            pass # node out of bounds
-
-            except curses.error:
-                pass # screen is being resized, probably.
+                if not (x, y) in self.nodes:
+                    layer.set(fx, fy, u'█'.encode(CODE), color=colors.fg_bg_to_index("white"), is_unicode=True)
+                    # pass
+                elif not (x-px, y-py) in visible:
+                    # TODO: what does this do?
+                    # X/Y are REAL coords (non-relative)
+                    # so to check for visibility, we have to relativize them
+                    pass
+                else:
+                    try:
+                        self.nodes[(x,y)].render(layer, fx, fy)
+                        # self.nodes[(x+self.x/2,y+self.y/2)].render(stdscr, x*2, y)
+                    except KeyError:
+                        pass # node out of bounds
 
     @log.logwrap
     def handle_interaction(self, key):
