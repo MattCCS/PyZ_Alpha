@@ -2,14 +2,14 @@
 # Author: Matthew Cotton
 
 from pyz import settings
-from pyz import curses_prep
+from pyz.curses_prep import curses, setup
 
 from collections import OrderedDict
 
 ####################################
 
 DEFAULT_COLOR = "white"
-DEFAULT_MODE = curses_prep.curses.A_NORMAL
+DEFAULT_MODE = curses.A_NORMAL
 
 ####################################
 
@@ -21,10 +21,10 @@ DIRECTIONAL_MAP_WSAD = {
 }
 
 DIRECTIONAL_MAP_ARROW = {
-    curses_prep.curses.KEY_UP    : ( 0, -1),
-    curses_prep.curses.KEY_DOWN  : ( 0,  1),
-    curses_prep.curses.KEY_LEFT  : (-1,  0),
-    curses_prep.curses.KEY_RIGHT : ( 1,  0),
+    curses.KEY_UP    : ( 0, -1),
+    curses.KEY_DOWN  : ( 0,  1),
+    curses.KEY_LEFT  : (-1,  0),
+    curses.KEY_RIGHT : ( 1,  0),
 }
 
 def get(name):
@@ -233,7 +233,7 @@ class LayerManager(object):
     # debug functions
     def debug_layers(self):
         for (name, (x,y,layer)) in self.layers.items():
-            print "{}: pos={}/{} dims={}".format(name, x,y, layer.size())
+            print("{}: pos={}/{} dims={}".format(name, x,y, layer.size()))
 
     def yield_rows_with_none(self):
         points = self.render_dict()
@@ -244,6 +244,23 @@ class LayerManager(object):
         return '\n'.join((' ' if space else '').join((p[0] if p is not None else ' ') for p in row) for row in self.yield_rows_with_none())
 
 ####################################
+
+# there will be, after initscr
+
+CURSES_BORDER = []
+
+def set_curses_border():
+    global CURSES_BORDER
+    CURSES_BORDER = [
+        curses.ACS_ULCORNER,
+        curses.ACS_URCORNER,
+        curses.ACS_LLCORNER,
+        curses.ACS_LRCORNER,
+        curses.ACS_HLINE,
+        curses.ACS_VLINE,
+        curses.ACS_HLINE,
+        curses.ACS_VLINE,
+    ]
 
 def add_border(layer, chars='++++-|-|', color=None):
     (x,y) = layer.size()
@@ -261,7 +278,7 @@ def layer_test():
 
     # cursor
     A = LayerManager("a", (1,1))
-    A.set(0,0,'X', mode=curses_prep.curses.A_STANDOUT)
+    A.set(0,0,'X', mode=curses.A_STANDOUT)
 
     # container for cursor
     SM = LayerManager("container", (8,8), restrict=True, sublayers=[
@@ -291,7 +308,7 @@ def layer_test():
 
 
 def curses_test_wrapped(stdscr):
-    curses_prep.setup(stdscr)
+    setup(stdscr)
 
     MAIN = layer_test()
     SM = LayerManager.get("container")
@@ -325,7 +342,7 @@ def curses_test_wrapped(stdscr):
             try:
                 stdscr.addstr(y, x*2, c, mode)
                 pass
-            except curses_prep.curses.error:
+            except curses.error:
                 break
         (x, y, _) = SM.get_layer("a")
         stdscr.addstr(20,0, "x/y: {}/{}".format(x, y), 1)
@@ -367,7 +384,7 @@ def curses_test_wrapped(stdscr):
 
 
 def curses_test():
-    curses_prep.curses.wrapper(curses_test_wrapped)
+    curses.wrapper(curses_test_wrapped)
     # curses_test_wrapped(None)
 
 
@@ -384,7 +401,5 @@ BODY = """\
 if __name__ == '__main__':
     # speedtest()
     # LM = layer_test()
-    # print LM.debugrender()
-    # print LM.debug_layers()
 
     curses_test()

@@ -66,7 +66,7 @@ def form_blocktable2D(angletable_2D=arc_tools.TABLE, shellcache=shell_tools.CACH
 ####################################
 # SETUP
 
-print "Forming BlockTable2D()..."
+print("Forming BlockTable2D()...")
 BLOCKTABLE = form_blocktable2D()
 
 ####################################
@@ -78,4 +78,4 @@ if __name__ == '__main__':
     #           save the global angle table!
 
     coord = (7,3)
-    print BLOCKTABLE[coord]
+    print(BLOCKTABLE[coord])

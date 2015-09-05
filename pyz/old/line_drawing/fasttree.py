@@ -49,33 +49,33 @@ def gen_new(radius, dimensions):
     # TODO:
     # DOES NOT INCLUDE (0,0) !!!
     # is that ok?
-    print "Generating radius:{} dimensions:{}".format(radius, dimensions)
+    print("Generating radius:{} dimensions:{}".format(radius, dimensions))
 
-    print "Generating all points..."
+    print("Generating all points...")
     all_points = coord_gen_utils.shell_coords(0, radius, dimensions)
 
-    print "Generating endpoints..."
+    print("Generating endpoints...")
     endpoints = coord_gen_utils.shell_wrap(radius, dimensions)
-    # print "endpoints:", endpoints
+    # print("endpoints:", endpoints)
 
-    print "Calculating all rays..."
+    print("Calculating all rays...")
     all_rays = ray_tools.generate_all_rays(endpoints, dimensions)
-    # print "all rays:", all_rays
+    # print("all rays:", all_rays)
 
-    print "Forming all_rays lookup table..."
+    print("Forming all_rays lookup table...")
     ray_lookup_table = ray_tools.form_ray_lookup_table(all_rays)
 
-    print "Finding all hit by..."
+    print("Finding all hit by...")
     table = {}
     for coord in all_points:
         all_hit = ray_tools.all_hit_by(coord, ray_lookup_table)
         table[coord] = all_hit
 
-    print "[!] Forming angle table..."
+    print("[!] Forming angle table...")
     # we include BOTH end angles!
     angle_table_2D = [set(c for c in table.iterkeys() if ang <= coord_gen_utils.convert_2D_coord_to_angle(c) <= ang+1) for ang in xrange(360)]
 
-    print "done."
+    print("done.")
     return SimpleView(table, radius, dimensions), angle_table_2D
 
 ####################################
@@ -83,19 +83,19 @@ def gen_new(radius, dimensions):
 def gen_new_all(radii=[8,12,16,24,32], dimensions=[2]):
     for dim in dimensions:
         for rad in radii:
-            print "Generating/saving radius:{} dimensions:{}".format(rad, dim)
+            print("Generating/saving radius:{} dimensions:{}".format(rad, dim))
             save(gen_new(rad, dim))
 
 ####################################
 
 if __name__ == '__main__':
     (sv, at) = gen_new(8,2)
-    print sv
-    print sv.save()
-    print at
+    print(sv)
+    print(sv.save())
+    print(at)
 
-    print coords_between_angles_2D(at, *angles_around_angle_2D(15, 5))
-    print coords_around_2D(at, 15, 5)
+    print(coords_between_angles_2D(at, *angles_around_angle_2D(15, 5)))
+    print(coords_around_2D(at, 15, 5))
 
     # gen_new_all()
     # gen_new_all(radii=[8,12,16,24,32], dimensions=[3])

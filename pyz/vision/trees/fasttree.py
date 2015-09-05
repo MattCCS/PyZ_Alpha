@@ -88,7 +88,7 @@ def load(radius, dimensions):
 ####################################
 # SETUP
 
-print "Creating SimpleView()..."
+print("Creating SimpleView()...")
 VIEW = SimpleView()
 
 ####################################

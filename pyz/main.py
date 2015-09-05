@@ -1,7 +1,7 @@
 
-import random
-
 from pyz import curses_prep
+
+import random
 
 from pyz.gamedata import json_parser
 from pyz import audio
@@ -43,12 +43,12 @@ def mainwrapped(stdscr):
         audio.rough_loop("environment/swamp.aif", 100)
         GRID.play()
     except Exception as e:
-        print e
+        print(e)
 
     audio.stop_all_sounds()
     curses_prep.curses.curs_set(1)
 
-    print "\n"*(Y + 10)
+    print("\n"*(Y + 10))
 
 @log.logwrap
 def main():

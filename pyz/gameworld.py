@@ -29,6 +29,29 @@ LOGGER.info("----------BEGIN----------")
 
 ####################################
 
+BODY = """\
+ /-\\ 
+ \\_/ 
+ -o-
+/ | \\
+  o
+ / \\
+ | |""".split('\n')
+
+BODY = u"""\
+ /⎺\\ 
+ \\_/ 
+ -o- 
+⎛ | ⎞
+  o  
+ ⎛ ⎞ 
+ ⎜ ⎟ """.encode(CODE).split('\n')
+
+# print BODY
+# print '\n'.join(BODY)
+
+####################################
+
 BLOCK_CHANCE_MIN = 20
 BLOCK_CHANCE_MAX = 80
 
@@ -240,7 +263,7 @@ class Grid2D:
         self.player.flashlight = objects.Flashlight(24, 90, 15, self.player)
 
         lantern_coord = (17,9)
-        self.lightsources = [self.player.lantern, objects.Lantern(8, None, lantern_coord)]
+        self.lightsources = [self.player.flashlight, objects.Lantern(8, None, lantern_coord)]
         self.nodes[lantern_coord].set_dirt()
         self.nodes[lantern_coord].appearance = 'X'
         self.nodes[lantern_coord].color = "yellow"
@@ -461,8 +484,8 @@ class Grid2D:
             self.render_frame()
 
     def resize_layers(self):
-        STATS_W = 16
-        PLAYER_H = 10
+        STATS_W = 15
+        PLAYER_H = 11
         NEWS_H = 4
 
         MAIN = layers.get("main")
@@ -478,6 +501,7 @@ class Grid2D:
         layers.get("stats").resize(STATS_W, STATS_H)
         MAIN.move_layer(w-1-STATS_W, 1, "stats")
 
+        layers.get("player").resize(STATS_W, PLAYER_H)
         MAIN.move_layer(w-1-STATS_W, 1+STATS_H, "player")
 
         layers.get("news").resize(GAMEFRAME_W, 4)
@@ -540,7 +564,7 @@ class Grid2D:
 
     def render_GUI(self):
         if not self.window_too_small():
-            layers.add_border(layers.get("main"), color=colors.fg_bg_to_index("red"))
+            layers.add_border(layers.get("main"), color=colors.fg_bg_to_index("white"))
             layers.get("main").setrange(0,0, "<main>", color=colors.fg_bg_to_index("white"))
 
             layers.get("gameworld").setrange(0, 0, "<gameworld>", color=colors.fg_bg_to_index("white"))
@@ -548,13 +572,14 @@ class Grid2D:
             layers.add_border(layers.get("gameframe"), color=colors.fg_bg_to_index("white"))
             layers.get("gameframe").setrange(0, 0, "<gameframe>", color=colors.fg_bg_to_index("white"))
 
-            layers.add_border(layers.get("stats"), color=colors.fg_bg_to_index("blue"))
+            layers.add_border(layers.get("stats"), color=colors.fg_bg_to_index("white"))
             layers.get("stats").setrange(0, 0, "<stats>", color=colors.fg_bg_to_index("white"))
 
-            layers.add_border(layers.get("player"), color=colors.fg_bg_to_index("green"))
+            layers.add_border(layers.get("player"), color=colors.fg_bg_to_index("white"))
             layers.get("player").setrange(0, 0, "<player>", color=colors.fg_bg_to_index("white"))
+            layers.get("player").setlines(5, 2, BODY, color=colors.fg_bg_to_index("white"))
 
-            layers.add_border(layers.get("news"), color=colors.fg_bg_to_index("yellow"))
+            layers.add_border(layers.get("news"), color=colors.fg_bg_to_index("white"))
             layers.get("news").setrange(0, 0, "<news>", color=colors.fg_bg_to_index("white"))
 
 
@@ -562,17 +587,15 @@ class Grid2D:
 
         # print "Playing..."
 
-        # say('1')
-        self.spacing = 2
         MAIN = layers.LayerManager("main", (80,24),
             sublayers=[
                 # (0, 0, layers.LayerManager("main_border", (80, 24))),
-                (1, 1, layers.LayerManager("gameframe", (62,18), sublayers=[
-                    (1, 1, layers.LayerManager("gameworld", (60,16))),
+                (1, 1, layers.LayerManager("gameframe", (5,5), sublayers=[
+                    (1, 1, layers.LayerManager("gameworld", (5,5))),
                 ])),
-                (63, 1, layers.LayerManager("stats", (16, 12))),
-                (63, 13, layers.LayerManager("player", (16, 10))),
-                (1, 19, layers.LayerManager("news", (62, 4))),
+                (63, 1, layers.LayerManager("stats", (5, 5))),
+                (63, 13, layers.LayerManager("player", (5, 5))),
+                (1, 19, layers.LayerManager("news", (5, 5))),
             ])
 
         self.update_viewport(sound=False)
@@ -602,9 +625,9 @@ class Grid2D:
                 self.render_GUI()
                 render_to(MAIN, self.stdscr)
         except KeyboardInterrupt:
-            print "User quit."
+            print("User quit.")
 
-        print "Quit."
+        print("Quit.")
 
     def play(self):
         try:

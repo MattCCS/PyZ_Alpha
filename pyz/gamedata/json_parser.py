@@ -12,7 +12,7 @@ DEBUG = False
 
 def printdebug(s):
     if DEBUG:
-        print s
+        print(s)
 
 DEFAULT_INDICATOR = "*"
 ATTRIBUTES_INDICATOR = "attributes"
@@ -127,7 +127,7 @@ def load(path):
     if path.endswith(os.path.sep):
         files = load_path(key)
         for filename in files:
-            print "... Loading {}...".format(filename)
+            print("... Loading {}...".format(filename))
             validate_and_save_objects(load_file(os.path.join(path, filename)))
     elif path.endswith('nodes'):
         node_data = load_file(path + '.json')
@@ -136,16 +136,16 @@ def load(path):
         data.OTHER[key].update(load_file(path + '.json'))
 
 def load_all():
-    print "Loading attributes..."
+    print("Loading attributes...")
     load_attributes()
 
-    print "Loading parameters..."
+    print("Loading parameters...")
     load_parameters()
 
-    print "Loading load order..."
+    print("Loading load order...")
     rest = load_order()
     for each in rest:
-        print "Loading {}...".format(each)
+        print("Loading {}...".format(each))
         load(each)
 
 if __name__ == '__main__':

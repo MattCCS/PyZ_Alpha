@@ -47,6 +47,26 @@
         }
     },
 
+    "very tall grass":
+    {
+        "attributes"    : ["passable"],
+        "concealment"   : 30,
+        "appearances"   : "\\|/)(",
+        "spawns":
+        {
+            "exclusive": {},
+            "any":
+            {
+                "%"             : 100,
+                "gravel"        : 1,
+                "talc"          : 0,
+                "flint"         : 1,
+                "stone"         : 5,
+                "heavy stone"   : 1
+            }
+        }
+    },
+
     "dirt":
     {
         "attributes"    : ["passable", "transparent"],

@@ -58,7 +58,7 @@ def all_hit_by(start, ray_lookup_table):
     if start in hit:
         hit.remove(start)
     else:
-        print "START NOT IN RAY...?", start
+        print("START NOT IN RAY...?", start)
 
     return hit
 
@@ -67,22 +67,22 @@ def all_hit_by(start, ray_lookup_table):
 def save_rays(n, dims=2):
     import sys
 
-    print "Generating shell..."
+    print("Generating shell...")
     S = shell_tools.shell_wrap(n, dimensions=dims)
-    print "done."
+    print("done.")
 
-    print "Sorting endpoints..."
+    print("Sorting endpoints...")
     S = sorted(list(S))
-    print "done."
+    print("done.")
     
     l = len(S)
-    print "Endpoints: {}".format(l)
+    print("Endpoints: {}".format(l))
 
-    print "Generating all paths to points..."
+    print("Generating all paths to points...")
     g = all_paths_to_points(S, listify=True)
-    print "done."
+    print("done.")
 
-    print "Saving..."
+    print("Saving...")
     with open("RAYS_{}D_{}.txt".format(dims, n), 'w') as f:
         for (i,ray) in enumerate(g, 1):
             f.write(str(ray) + '\n')
@@ -91,4 +91,4 @@ def save_rays(n, dims=2):
             sys.stdout.write("\r--> {} / {}".format(i, l))
             sys.stdout.flush()
     sys.stdout.write('\n')
-    print "done."
+    print("done.")

@@ -78,5 +78,5 @@ class AngleTable2D(object):
 
 ####################################
 # SETUP
-print "Forming AngleTable2D({})...".format(len(shell_tools.CACHE.coords()))
+print("Forming AngleTable2D({})...".format(len(shell_tools.CACHE.coords())))
 TABLE = AngleTable2D(shell_tools.CACHE.coords())

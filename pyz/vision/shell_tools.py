@@ -126,5 +126,5 @@ class ShellCache(object):
 ####################################
 # SETUP
 
-print "Forming ShellCache({})...".format(settings.MAX_RADIUS)
+print("Forming ShellCache({})...".format(settings.MAX_RADIUS))
 CACHE = ShellCache(settings.MAX_RADIUS)
