@@ -1,5 +1,6 @@
 
 from pyz import log
+from pyz.say import say
 
 class Event(object):
     """
@@ -76,6 +77,9 @@ class FacingEvent(Event):
         elif start - target > 180:
             target += 360
 
+        # say("start is {}".format(start))
+        # say("target is {}".format(target))
+
         self.angle = start
         self.target = target
         self.speed = speed
@@ -84,11 +88,10 @@ class FacingEvent(Event):
 
         self.deathcounter = 1
 
-        # self.step()
+        self.step()
 
     @log.logwrap
     def step(self):
-        self.arc.angle = self.angle % 360
 
         if self.dead:
             return
@@ -97,6 +100,9 @@ class FacingEvent(Event):
             self.angle = max(self.target, self.angle - self.speed)
         elif self.angle < self.target:
             self.angle = min(self.target, self.angle + self.speed)
+
+        self.arc.set_angle(self.angle % 360)
+        # say("angle is now {}".format(self.arc.angle))
         
         if self.angle == self.target:
             self.deathcounter -= 1

@@ -8,10 +8,11 @@ from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
 from pyz import colors
 
+from pyz.windows import news_window
+from pyz import node
 from pyz import audio
 from pyz import player
 from pyz import objects
-from pyz import data
 from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
 from pyz import utils
@@ -91,85 +92,6 @@ SPEED_DICT = {
 
 ARROW_KEYS = {curses.KEY_LEFT, curses.KEY_RIGHT, curses.KEY_UP, curses.KEY_DOWN}
 
-def say(s, r=400):
-    import subprocess
-    subprocess.check_output(['say', s, '-r', str(r)])
-
-####################################
-
-class Node2D(object):
-
-    ERROR  = '!'
-
-    def __init__(self, parentgrid, coord):
-
-        self.parentgrid = parentgrid
-        self.coord = coord
-
-        self.reverse_video = False
-
-        self.name = '---'
-        self.passable = True
-        self.transparent = True
-        self.material = None
-        self.appearance = None
-        self.color = 0
-        self.old_color = 0
-        self.damageable = False
-        self.health = 0
-        self.objects = []
-        self.set_dirt()
-
-    ####################################
-    # attribute assignment
-
-    def set(self, name):
-        data.reset(self, 'node', name)
-
-    def set_tree(self):
-        self.set('tree')
-
-    def set_smoke(self):
-        self.set('smoke')
-
-    def set_grass(self):
-        self.set('grass')
-
-    def set_dirt(self):
-        self.set('dirt')
-
-    ####################################
-
-    def damage(self, n):
-        if self.damageable:
-            self.health -= n
-            if self.health <= 0:
-                self.parentgrid.news.add("The {} dies.".format(self.name))
-                self.die()
-
-    def die(self):
-        if self.name == 'tree':
-            audio.play_random("foley/tree", volume=0.5)
-        self.set_dirt()
-        self.parentgrid.blocked.discard(self.coord)
-
-    def render(self, layer, x, y):
-
-        # yes, every tick
-        if self.name == 'smoke':
-            self.appearance = random.choice("%&")
-
-        char = self.appearance if self.appearance else Node2D.ERROR
-
-        try:
-            if not self.reverse_video:
-                layer.set(x, y, char.encode(CODE), color=colors.fg_bg_to_index(self.color))
-            else:
-                layer.set(x, y, char.encode(CODE), color=curses.A_REVERSE)
-        except curses.error:
-            pass # some out-of-bounds issue.
-            # TODO: investigate!
-
 ####################################
 
 def yield_coords(range_nums):
@@ -199,29 +121,13 @@ def key_to_coord(key):
 
 ####################################
 
-class NewsWindow(object):
-    
-    def __init__(self, limit=30):
-        self.news = []
-        self.limit = limit
-
-    def add(self, string):
-        self.news.append(string)
-        diff = len(self.news) - self.limit
-        if diff > 0:
-            for i in range(diff):
-                self.news.pop(0)
-
-    def latest(self, n):
-        return reversed(self.news[:-n-1:-1]) # yep, this is it.
-
 
 class Grid2D(object):
 
     def __init__(self, stdscr, x, y):
 
         self.stdscr = stdscr
-        self.news = NewsWindow()
+        self.news = news_window.NewsWindow()
 
         self.spacing = 2
         
@@ -230,7 +136,7 @@ class Grid2D(object):
         self._truex = x
         self._truey = y
 
-        self.nodes = {coord : Node2D(self, coord) for coord in yield_coords( (self.x, self.y) )}
+        self.nodes = {coord : node.Node2D(self, coord) for coord in yield_coords( (self.x, self.y) )}
 
         # make trees
         self.blocked = set()
@@ -402,6 +308,8 @@ class Grid2D(object):
                 audio.play('movement/changing/nonprone.aif')
 
         if hasattr(self.player, 'flashlight'):
+            _layer = layers.get("gameworld")
+
             if key == ord('f'):
                 # toggle flashlight
                 on = self.player.flashlight.toggle()
@@ -411,14 +319,14 @@ class Grid2D(object):
             elif key == ord('m'):
                 self.player.flashlight.toggle_mode()
 
-            # elif key == ord('q'):
-            #     self.player.flashlight.swivel(-10)
-            # elif key == ord('Q'):
-            #     self.player.flashlight.swivel(-50)
-            # elif key == ord('e'):
-            #     self.player.flashlight.swivel(10)
-            # elif key == ord('E'):
-            #     self.player.flashlight.swivel(50)
+            elif key == ord('q'):
+                self.player.flashlight.swivel(12, self, _layer)
+            elif key == ord('Q'):
+                self.player.flashlight.swivel(60, self, _layer)
+            elif key == ord('e'):
+                self.player.flashlight.swivel(-12, self, _layer)
+            elif key == ord('E'):
+                self.player.flashlight.swivel(-60, self, _layer)
 
             self.player.flashlight.update_direction(key_to_coord(key))
 

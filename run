@@ -18,5 +18,5 @@ if [ $# -eq 1 ] && [ $1 -eq 2 ]; then
 fi
 
 if [ $# -eq 1 ] && [ $1 -eq 3 ]; then
-    python3 -B -m pyz.main
+    python3 -m pyz.main
 fi

@@ -111,8 +111,10 @@ class Flashlight(Item, sightradius.ArcLight2D):
         self.on = not self.on
         return self.on
 
-    # def swivel(self, diff):
-    #     grid.visual_events_bottom.append(events.FacingEvent(grid, layer, None, self, self.angle, target, self.focus_speed))
+    def swivel(self, diff, grid, layer):
+        self.mode = 0 # OVERRIDE
+        target = (self.angle + diff) % 360
+        grid.visual_events_bottom.append(events.FacingEvent(grid, layer, None, self, self.angle, target, self.focus_speed))
 
     def toggle_mode(self):
         audio.play("weapons/trigger.aif", volume=0.2)
