@@ -99,7 +99,6 @@ def say(s, r=400):
 
 class Node2D(object):
 
-    HIDDEN = '█'
     ERROR  = '!'
 
     def __init__(self, parentgrid, coord):
@@ -145,6 +144,7 @@ class Node2D(object):
         if self.damageable:
             self.health -= n
             if self.health <= 0:
+                self.parentgrid.news.add("The {} dies.".format(self.name))
                 self.die()
 
     def die(self):
@@ -185,13 +185,6 @@ def yield_coords(range_nums):
         for coord in yield_coords(rest):
             yield (n,) + coord
 
-
-# def yield_coords_offset(range_nums, offset_nums):
-#     assert len(range_nums) == len(offset_nums)
-
-#     for coord in yield_coords(range_nums):
-#         yield tuple(map(sum, zip(coord, offset_nums)))
-
 def key_to_coord(key):
     if key == curses.KEY_UP:
         return (0,1)
@@ -206,11 +199,29 @@ def key_to_coord(key):
 
 ####################################
 
-class Grid2D:
+class NewsWindow(object):
+    
+    def __init__(self, limit=30):
+        self.news = []
+        self.limit = limit
+
+    def add(self, string):
+        self.news.append(string)
+        diff = len(self.news) - self.limit
+        if diff > 0:
+            for i in range(diff):
+                self.news.pop(0)
+
+    def latest(self, n):
+        return reversed(self.news[:-n-1:-1]) # yep, this is it.
+
+
+class Grid2D(object):
 
     def __init__(self, stdscr, x, y):
 
         self.stdscr = stdscr
+        self.news = NewsWindow()
 
         self.spacing = 2
         
@@ -263,7 +274,8 @@ class Grid2D:
         self.player_stand_state = 2
         self.player.lantern = objects.Lantern(16, self.player)
         self.player.lantern.can_age = True
-        self.player.flashlight = objects.Flashlight(24, 90, 15, self.player)
+        self.player.flashlight = objects.Flashlight(14, 20, self.player)
+        # self.player.flashlight = objects.Flashlight(4, 150, self.player) # realistic lantern.
 
         lantern_coord = (17,9)
         self.lightsources = [self.player.flashlight, objects.Lantern(8, None, lantern_coord)]
@@ -354,39 +366,68 @@ class Grid2D:
             elif self.nodes[(x,y)].passable:
                 audio.play_movement(self.player_stand_state, self.player_sneakwalksprint, self.nodes[(x,y)].material)
                 self.player.set_position( (x,y) )
+                self.news.add("")
             else:
                 # it's an obstacle!  AKA gameobject
-                if self.player.prefs.auto_attack and self.player.weapon:
+                if not self.is_visible((x,y)):
+                    self.news.add("You bump into something.")
+                    # TODO:  CANNOT INTERACT IF CAN'T SEE ??????
+                elif self.player.prefs.auto_attack and self.player.weapon:
+                    self.news.add("You chop the tree!")
                     self.player.weapon.attack_NODE(self.nodes[(x,y)], self, layers.get("gameworld"), (x,y))
 
         elif key in list(map(ord, 'sS')):
             # toggle sneak/walk/sprint
             self.player_sneakwalksprint = (self.player_sneakwalksprint + 1) % 3
+            self.news.add("You begin {}.".format(SPEED_DICT[self.player_sneakwalksprint]))
             audio.play('weapons/trigger.aif', volume=0.2)
         elif key in list(map(ord, 'zZ')):
             # lower
             if self.player_stand_state > 0:
                 self.player_stand_state -= 1
                 if self.player_stand_state == 0:
+                    self.news.add("You go prone.")
                     audio.play('movement/changing/prone.aif')
                 else:
+                    self.news.add("You crouch.")
                     audio.play('movement/changing/nonprone.aif')
         elif key in list(map(ord, 'xX')):
             # raise
             if self.player_stand_state < 2:
                 self.player_stand_state += 1
+                if self.player_stand_state == 1:
+                    self.news.add("You crouch.")
+                else:
+                    self.news.add("You stand up.")
                 audio.play('movement/changing/nonprone.aif')
 
         if hasattr(self.player, 'flashlight'):
             if key == ord('f'):
                 # toggle flashlight
-                self.player.flashlight.toggle()
+                on = self.player.flashlight.toggle()
+                self.news.add("You switch your flashlight {}.".format("on" if on else "off"))
                 time.sleep(0.2)
 
             elif key == ord('m'):
                 self.player.flashlight.toggle_mode()
 
+            # elif key == ord('q'):
+            #     self.player.flashlight.swivel(-10)
+            # elif key == ord('Q'):
+            #     self.player.flashlight.swivel(-50)
+            # elif key == ord('e'):
+            #     self.player.flashlight.swivel(10)
+            # elif key == ord('E'):
+            #     self.player.flashlight.swivel(50)
+
             self.player.flashlight.update_direction(key_to_coord(key))
+
+    def is_visible(self, absolute_coord):
+        (x,y) = absolute_coord
+        (px,py) = self.player.position()
+        rx = x-px
+        ry = y-py
+        return (rx,ry) in self.visible
 
     def determine_visible(self):
 
@@ -429,10 +470,7 @@ class Grid2D:
 
         return wait
 
-    @log.logwrap
-    def tick(self, key):
-        if self.window_too_small():
-            return
+    def interact(self, key):
 
         ####################################
         # TOP visual events pause interaction
@@ -441,6 +479,8 @@ class Grid2D:
 
         if not self.visual_events_top:
             self.handle_interaction(key)
+
+    def age(self):
 
         for obj in objects.GameObject.record:
             obj.age(self, self.stdscr)
@@ -483,7 +523,7 @@ class Grid2D:
     def resize_layers(self):
         STATS_W = 15
         PLAYER_H = 11
-        NEWS_H = 4
+        NEWS_H = 5
 
         MAIN = layers.get("main")
         MAIN.resize(self._truex-1, self._truey) # TODO: <---
@@ -501,7 +541,7 @@ class Grid2D:
         layers.get("player").resize(STATS_W, PLAYER_H)
         MAIN.move_layer(w-1-STATS_W, 1+STATS_H, "player")
 
-        layers.get("news").resize(GAMEFRAME_W, 4)
+        layers.get("news").resize(GAMEFRAME_W, NEWS_H)
         MAIN.move_layer(1, 1+GAMEFRAME_H, "news")
 
     def render_frame(self):
@@ -577,11 +617,11 @@ class Grid2D:
 
             layers.add_border(layers.get("news"), color=colors.fg_bg_to_index("white"))
             layers.get("news").setrange(0, 0, "<news>", color=colors.fg_bg_to_index("white"))
+            for (y, news) in enumerate(self.news.latest(3), 1):
+                layers.get("news").setrange(1, y, news, color=colors.fg_bg_to_index("white"))
 
 
     def playwrap(self):
-
-        # print "Playing..."
 
         layers.set_curses_border()
 
@@ -597,7 +637,6 @@ class Grid2D:
             ])
 
         self.update_viewport(sound=False)
-        self.tick('')  # start
         self.render()
 
         try:
@@ -606,15 +645,16 @@ class Grid2D:
                 curses.flushinp()
                 key = self.stdscr.getch()
 
-                if key == 113: # q
-                    break
-
                 if key == curses.KEY_RESIZE:
                     self.update_viewport()
                     continue
 
-                # tick
-                self.tick(key)
+                if not self.window_too_small():
+
+                    self.interact(key)
+
+                    # age
+                    self.age()
 
                 # render
                 self.render()
@@ -629,7 +669,7 @@ class Grid2D:
             self.playwrap()
         except Exception as e:
             import traceback
-            say(str(e), r=200)
+            # say(str(e), r=200)
             with open("BAD.txt", 'w') as f:
                 f.write(traceback.format_exc())
 

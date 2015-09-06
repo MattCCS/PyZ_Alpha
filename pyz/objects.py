@@ -8,9 +8,11 @@ from pyz import log
 
 ####################################
 
-CENTER = (0,0)
+def say(s, r=400):
+    import subprocess
+    subprocess.check_output(['say', s, '-r', str(r)])
 
-class NoSpaceException(Exception): pass
+CENTER = (0,0)
 
 class GameObject(object):
     """
@@ -87,7 +89,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
     Represets a directed radial light source.
     """
 
-    def __init__(self, radius, angle, arc_length, parent, position=CENTER):
+    def __init__(self, radius, arc_length, parent, angle=0, position=CENTER):
         Item.__init__(self, parent, position)
         sightradius.ArcLight2D.__init__(self, radius, angle, arc_length) # default shellcache/blocktable/angletable
 
@@ -107,6 +109,10 @@ class Flashlight(Item, sightradius.ArcLight2D):
     def toggle(self):
         audio.play("items/flashlight_toggle.m4a", volume=3.0)
         self.on = not self.on
+        return self.on
+
+    # def swivel(self, diff):
+    #     grid.visual_events_bottom.append(events.FacingEvent(grid, layer, None, self, self.angle, target, self.focus_speed))
 
     def toggle_mode(self):
         audio.play("weapons/trigger.aif", volume=0.2)
@@ -125,8 +131,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
         target = self.target_angle_diff()
         grid.visual_events_bottom.append(events.FacingEvent(grid, layer, None, self, self.angle, target, self.focus_speed))
         grid.visual_events_top.append(events.GenericFocusEvent(grid, layer, self.focus))
-    
-    @log.logwrap
+
     def update_direction(self, direction):
         if self.modes[self.mode] != 'facing':
             return
@@ -141,7 +146,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
             self.angle = 270
 
     def age(self, grid, layer):
-        if self.on and self.facing_away() and self.is_focusing():
+        if self.on and self.is_focusing() and self.facing_away():
             self.update(grid, layer)
 
 
