@@ -2,7 +2,8 @@
     "knappable"   : { "description": "Whether the object can be flaked into a sharper object through force" },
     "sharpenable" : { "description": "Whether the object can be sharpened with a stone or blade" },
 
-    "damageable"  : { "description": "Whether the node/object can be damaged" },
-    "passable"    : { "description": "Whether the node/object can be walked through" },
-    "transparent" : { "description": "Whether the node/object can be seen through" }
+    "occluder"    : { "description": "Whether the object blocks light" },
+    "impassible"  : { "description": "Whether the object blocks movement" },
+
+    "damageable"  : { "description": "Whether the object can be damaged" }
 }

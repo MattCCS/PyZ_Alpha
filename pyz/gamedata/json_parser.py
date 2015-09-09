@@ -73,7 +73,7 @@ def validate_and_save_objects(objects):
                 obj[attr] = True
             del obj[ATTRIBUTES_INDICATOR]
 
-        data.DataObject(obj_name, obj)
+        data.DataObject("object", obj_name, obj)
 
 def validate_and_save_nodes(nodes):
     defaults = nodes.get(DEFAULT_INDICATOR, {})
@@ -105,7 +105,7 @@ def validate_and_save_nodes(nodes):
                 node[attr] = True
             del node[ATTRIBUTES_INDICATOR]
 
-        data.DataObject(node_name, node)
+        data.DataObject("node", node_name, node)
 
 ####################################
 

@@ -3,7 +3,7 @@ import math
 
 from pyz.vision import arc_tools
 from pyz.vision import shell_tools
-from pyz import utils
+from pyz.vision import utils
 
 ####################################
 
@@ -28,10 +28,10 @@ def c_plusorminus_c(coord, coord_diff):
     (dx,dy) = coord_diff
     return (x+dx,y+dy), (x-dx,y-dy)
 
-def edges_of_coord(coord):
+def edges_of_coord(coord, radius=0.5):
     try:
         perp = perpendicular(coord)
-        perp = normalize(perp, 0.5) # +- 0.5 gives a range of 1
+        perp = normalize(perp, radius) # +- 0.5 gives a range of 1
         (low, high) = c_plusorminus_c(coord, perp)
         high = int(round(arc_tools.convert_2D_coord_to_angle(high)))
         low  = int(round(arc_tools.convert_2D_coord_to_angle(low )))

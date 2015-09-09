@@ -1,0 +1,33 @@
+(This file is for per-feature progress reporting, for review afterward)
+
+( 9-8-15 / Object integration )
++ have objects render-cycling, on a (near-)global timer
+    + if timeout, no game update/aging occurs (hopefully)
++ converted trees to objects
+    - but don't perform checks for them yet
+- NEED to combine "blocking" with objects present in node!
++ made "passability" check for objects
++ made lantern an object (on the ground)
++ MADE OCCLUSION DYNAMIC <3
+
+( 9-9-15 / ... )
+BIG CHANGES
++ added debug '(l)ook' command
++ separated NODES and OBJECTS in terms of data categorization
+    (nodes will eventually just be containers for objects)
++ changed 'passable' to 'impassible', as most objects should default to passable
++ changed 'transparent' to 'occluder', added global potential-occlusion dataset, allows dynamic occlusion
++ made trees objects, as they should be
++ combat now checks for a SINGLE attackable object on the node, send the attack to it instead
+    + nodes can't be attacked
++ removed 'self.blocked' set, as it no longer made sense to have
++ delegated the GameObject class to age/kill its objects
++ gave GameObjects the same sexy '__getitem__' as DataObjects for attribute lookups
++ added sounds
+- NEED to change how attack sounds are determined
+- NEED to change how colors are determined (by material)
+    - NEED to make materials their own JSON type, with colors and densities, etc.
+- NEED to make the canvas-cycle timer global
+- NEED to make 'news' globally-accessible
+! multiple coordinate-edge-radius values allow for "thick"/"thin" objects!  do this!
+

@@ -3,7 +3,7 @@ from pyz.vision.trees import fasttree
 from pyz.vision.rays import arctracing
 from pyz.vision import arc_tools
 from pyz.vision import shell_tools
-from pyz import utils
+from pyz.vision import utils
 from pyz import log
 # from pyz import settings
 

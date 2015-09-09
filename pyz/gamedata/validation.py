@@ -38,6 +38,7 @@ def char(s):
 VALID_FIELDS = {
     "str"        : str,
     "int"        : int,
+    "float"      : float,
     "char"       : char,
     "list[str]"  : lambda L: [ str(s) for s in L],
     "list[int]"  : lambda L: [ int(s) for s in L],

@@ -45,6 +45,12 @@
     {
         "description": "The health of this object;  when 0, the object 'dies'.",
         "fields": ["int"]
+    },
+
+    "s_death":
+    {
+        "description": "The sound-folder/volume played on the object's death.",
+        "fields": ["str", "float"]
     }
 
 }

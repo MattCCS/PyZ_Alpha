@@ -25,3 +25,4 @@ AND uncertainty in SOUND cues:
         - multiple = uncertain
         - single point = certain
 
+If a node has smoke, determine transparency RANDOMLY every tick!

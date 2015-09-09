@@ -9,25 +9,17 @@ from pyz.curses_prep import curses
 from pyz import colors
 
 from pyz.windows import news_window
+from pyz.windows import stats_window
 from pyz import node
 from pyz import audio
 from pyz import player
 from pyz import objects
 from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
-from pyz import utils
+from pyz.vision import utils
 from pyz import layers
 
 from pyz.terminal_size import true_terminal_size
-
-####################################
-# SETTING UP THE LOGGER
-import os
-from pyz import log # <3
-ROOTPATH = os.path.splitext(__file__)[0]
-LOGPATH = "{0}.log".format(ROOTPATH)
-LOGGER = log.get(__name__, path=LOGPATH)
-LOGGER.info("----------BEGIN----------")
 
 ####################################
 
@@ -126,11 +118,24 @@ class Grid2D(object):
 
     def __init__(self, stdscr, x, y):
 
+        self.MAIN = layers.LayerManager("main", (80,24),
+            sublayers=[
+                # (0, 0, layers.LayerManager("main_border", (80, 24))),
+                (1, 1, layers.LayerManager("gameframe", (5,5), sublayers=[
+                    (1, 1, layers.LayerManager("gameworld", (5,5))),
+                ])),
+                (63, 1, layers.LayerManager("stats", (5, 5))),
+                (63, 13, layers.LayerManager("player", (5, 5))),
+                (1, 19, layers.LayerManager("news", (5, 5))),
+            ])
+
         self.stdscr = stdscr
+        self.stdscr.timeout(1000)
         self.news = news_window.NewsWindow()
+        self.stats = stats_window.StatsWindow(layers.get("stats"))
 
         self.spacing = 2
-        
+
         self.x = x
         self.y = y
         self._truex = x
@@ -139,11 +144,9 @@ class Grid2D(object):
         self.nodes = {coord : node.Node2D(self, coord) for coord in yield_coords( (self.x, self.y) )}
 
         # make trees
-        self.blocked = set()
         for _ in range(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
             coord = (random.randint(0,x-2), random.randint(0,y-2))
-            self.blocked.add(coord)
-            self.nodes[coord].set_tree()
+            self.nodes[coord].add("tree")
 
         self.visible = set()
 
@@ -158,46 +161,62 @@ class Grid2D(object):
         rad7 = shell_tools.shell_coords(0, 7)
 
         # smoke
-        (cx, cy) = (37, 15)
-        self.nodes[(cx,cy)].set_smoke()
-        self.blocked.add( (cx,cy) )
-        for x,y in rad3:
-            self.blocked.add( (x+cx, y+cy) )
-            self.nodes[(x+cx, y+cy)].set_smoke()
+        # (cx, cy) = (37, 15)
+        # self.nodes[(cx,cy)].set_smoke()
+        # self.blocked.add( (cx,cy) )
+        # for x,y in rad3:
+        #     self.blocked.add( (x+cx, y+cy) )
+        #     self.nodes[(x+cx, y+cy)].set_smoke()
 
         # grass
         (cx, cy) = (20, 9)
-        if not (cx,cy) in self.blocked:
-            self.nodes[(cx,cy)].set_grass()
+        self.nodes[(cx,cy)].set("grass")
         for x,y in rad7:
-            if not (x+cx,y+cy) in self.blocked:
-                self.nodes[(x+cx, y+cy)].set_grass()
+            self.nodes[(x+cx, y+cy)].set("grass")
+
+        (cx,cy) = (20,20)
+        self.nodes[(cx,cy)].add("stone wall")
+        for y in range(cy, cy+8+1):
+            for x in range(cx, cx+8+1):
+                pos = (x,y)
+                if x not in [cx, cx+8] and y not in [cy, cy+8]:
+                    continue
+                if not self.nodes[pos].objects:
+                    self.nodes[pos].add("stone wall")
+
+        x1 = objects.GameObject()
+        x1.name = 'ruby'
+        x1.appearance = "*"
+        x1.color = "red"
+
+        x2 = objects.GameObject()
+        x2.name = 'amulet'
+        x2.appearance = "@"
+        x2.color = "blue"
+
+        (cx, cy) = (20, 9)
+        self.nodes[(cx, cy)].objects.extend([x1,x2])
 
         # player and lantern
         self.player = player.Player()
         self.player.weapon = objects.WEAPONS['axe1']
         self.player_sneakwalksprint = 1
         self.player_stand_state = 2
-        self.player.lantern = objects.Lantern(16, self.player)
+        self.player.lantern = objects.Lantern(10, self.player)
         self.player.lantern.can_age = True
         self.player.flashlight = objects.Flashlight(14, 20, self.player)
-        # self.player.flashlight = objects.Flashlight(4, 150, self.player) # realistic lantern.
+        # self.player.flashlight = objects.Flashlight(6, 150, self.player) # realistic lantern.
 
         lantern_coord = (17,9)
-        self.lightsources = [self.player.flashlight, objects.Lantern(8, None, lantern_coord)]
-        self.nodes[lantern_coord].set_dirt()
-        self.nodes[lantern_coord].appearance = 'X'
-        self.nodes[lantern_coord].color = "yellow"
-        self.nodes[lantern_coord].old_color = "yellow"
+        lantern = objects.Lantern(8, None, lantern_coord)
+        lantern.name = "lantern"
+        lantern.appearance = 'A'
+        lantern.color = "yellow"
+        lantern.old_color = "yellow"
+        self.lightsources = [self.player.lantern, lantern]
+        self.nodes[lantern_coord].set("dirt")
+        self.nodes[lantern_coord].objects.append(lantern)
 
-    # def reset(self, coords=None):
-    #     if coords is None:
-    #         nodes = self.nodes.itervalues()
-    #     else:
-    #         nodes = (self.nodes[coord] for coord in coords)
-
-    #     for node in nodes:
-    #         node.reset()
 
     def frame_coords_2D(self, width, height):
         (px, py) = self.player.position()
@@ -248,7 +267,6 @@ class Grid2D(object):
                     except KeyError:
                         pass # node out of bounds
 
-    @log.logwrap
     def handle_interaction(self, key):
 
         ####################################
@@ -268,19 +286,27 @@ class Grid2D(object):
 
             if (x,y) == self.player.position():
                 pass # edge of map
+                self.news.add("You bump into the blocky white abyss.")
                 # TODO: should be edge of AVAILABLE map
-            elif self.nodes[(x,y)].passable:
+            elif self.nodes[(x,y)].is_passable():
                 audio.play_movement(self.player_stand_state, self.player_sneakwalksprint, self.nodes[(x,y)].material)
                 self.player.set_position( (x,y) )
                 self.news.add("")
             else:
                 # it's an obstacle!  AKA gameobject
                 if not self.is_visible((x,y)):
-                    self.news.add("You bump into something.")
+                    self.news.add("You bump into something.") # TODO: material hints!
+                    time.sleep(0.2)
                     # TODO:  CANNOT INTERACT IF CAN'T SEE ??????
                 elif self.player.prefs.auto_attack and self.player.weapon:
-                    self.news.add("You chop the tree!")
-                    self.player.weapon.attack_NODE(self.nodes[(x,y)], self, layers.get("gameworld"), (x,y))
+                    objs = self.nodes[(x,y)].objects
+                    if len(objs) == 1:
+                        obj = objs[0]
+                        if obj.damageable:
+                            self.news.add("You chop the {}!".format(obj.name))
+                            self.player.weapon.attack(obj, self, layers.get("gameworld"))
+                else:
+                    self.news.add("You bump into the {}.".format(self.nodes[(x,y)].name))
 
         elif key in list(map(ord, 'sS')):
             # toggle sneak/walk/sprint
@@ -306,6 +332,8 @@ class Grid2D(object):
                 else:
                     self.news.add("You stand up.")
                 audio.play('movement/changing/nonprone.aif')
+        elif key == ord('l'):
+            self.news.add("You see: {}".format(', '.join(obj.name for obj in self.nodes[self.player.position()].objects)))
 
         if hasattr(self.player, 'flashlight'):
             _layer = layers.get("gameworld")
@@ -317,7 +345,8 @@ class Grid2D(object):
                 time.sleep(0.2)
 
             elif key == ord('m'):
-                self.player.flashlight.toggle_mode()
+                mode = self.player.flashlight.toggle_mode()
+                self.news.add("You switch your flashlight to '{}' mode.".format(mode))
 
             elif key == ord('q'):
                 self.player.flashlight.swivel(12, self, _layer)
@@ -337,13 +366,17 @@ class Grid2D(object):
         ry = y-py
         return (rx,ry) in self.visible
 
+    def determine_occluders(self):
+        return set(obj.position() for obj in objects.occluders())
+
     def determine_visible(self):
 
         ####################################
         # rendering
+        occluded = self.determine_occluders()
 
         # all light sources individually
-        visible = set().union(*(utils.visible_coords_absolute_2D(self.blocked, light, light.position()) for light in self.lightsources))
+        visible = set().union(*(utils.visible_coords_absolute_2D(occluded, light, light.position()) for light in self.lightsources))
 
         ####################################
         # RELATIVE
@@ -351,8 +384,8 @@ class Grid2D(object):
         # add special overlaps (trees the player *can't* see but which block vision nonetheless)
         # faster now, since 'visible' is smaller
         visible = utils.remaining(
-            relative_coords(visible,      self.player.position()),
-            relative_coords(self.blocked, self.player.position()),
+            relative_coords(visible,    self.player.position()),
+            relative_coords(occluded,   self.player.position()),
             arctracing.BLOCKTABLE
             )
 
@@ -389,10 +422,12 @@ class Grid2D(object):
             self.handle_interaction(key)
 
     def age(self):
-
-        for obj in objects.GameObject.record:
-            obj.age(self, self.stdscr)
-
+        # age player
+        # age enemies
+        grid = self
+        layer = layers.get("gameworld")
+        objects.GameObject.age_all(grid, layer)
+        objects.GameObject.kill_dead()
 
     def render_player(self):
         layer = layers.LayerManager.get("gameworld")
@@ -516,6 +551,7 @@ class Grid2D(object):
             layers.add_border(layers.get("gameframe"), color=colors.fg_bg_to_index("white"))
             layers.get("gameframe").setrange(0, 0, "<gameframe>", color=colors.fg_bg_to_index("white"))
 
+            self.stats.render()
             layers.add_border(layers.get("stats"), color=colors.fg_bg_to_index("white"))
             layers.get("stats").setrange(0, 0, "<stats>", color=colors.fg_bg_to_index("white"))
 
@@ -533,35 +569,26 @@ class Grid2D(object):
 
         layers.set_curses_border()
 
-        MAIN = layers.LayerManager("main", (80,24),
-            sublayers=[
-                # (0, 0, layers.LayerManager("main_border", (80, 24))),
-                (1, 1, layers.LayerManager("gameframe", (5,5), sublayers=[
-                    (1, 1, layers.LayerManager("gameworld", (5,5))),
-                ])),
-                (63, 1, layers.LayerManager("stats", (5, 5))),
-                (63, 13, layers.LayerManager("player", (5, 5))),
-                (1, 19, layers.LayerManager("news", (5, 5))),
-            ])
-
         self.update_viewport(sound=False)
         self.render()
 
         try:
             while True:
+                self.stats.inc()
+
                 # input
                 curses.flushinp()
                 key = self.stdscr.getch()
 
-                if key == curses.KEY_RESIZE:
+                if key == -1: # TIMEOUT
+                    pass # render!  update the nodes with multiple objects!
+
+                elif key == curses.KEY_RESIZE:
                     self.update_viewport()
                     continue
 
-                if not self.window_too_small():
-
+                elif not self.window_too_small():
                     self.interact(key)
-
-                    # age
                     self.age()
 
                 # render

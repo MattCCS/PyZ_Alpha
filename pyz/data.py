@@ -1,14 +1,14 @@
 
 import random
 
-from pyz import colors
-from pyz import log
-
 ####################################
+
+CLASSES = ["object", "node"]
 
 ATTRIBUTES  = {}
 PARAMETERS  = {}
 OBJECTS     = {}
+NODES       = {}
 OTHER       = {}
 
 ####################################
@@ -19,17 +19,29 @@ def reset(obj, cat, name):
 
     ex:  set('grass', obj)
     """
-    OBJECTS[name].set(obj)
+    assert cat in CLASSES
+    if cat == "node":
+        NODES[name].set(obj)
+    else:
+        OBJECTS[name].set(obj)
+
 
 class DataObject(object):
     """
     Represents the stored default data for an object or node.
     """
 
-    def __init__(self, name, data):
+    def __init__(self, cat, name, data):
+        assert cat in CLASSES
         self.name = name
+        self.cat = cat
         self.__dict__.update(data)
-        OBJECTS[self.name] = self
+        if cat == "node":
+            NODES[self.name] = self
+        elif cat == "object":
+            OBJECTS[self.name] = self
+        elif cat == "item":
+            pass
 
     def set(self, obj):
         """
@@ -41,7 +53,6 @@ class DataObject(object):
         for (key, val) in list(vars(self).items()):
             setattr(obj, key, val)
         if "colors" in vars(self):
-            # obj.color = colors.lookup(random.choice(self.colors))
             obj.color = random.choice(self.colors)
             obj.old_color = obj.color
         if "appearances" in vars(self):

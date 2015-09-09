@@ -1,10 +1,11 @@
 
 from pyz import audio
-from pyz import utils
+from pyz.vision import utils
 from pyz.vision import sightradius
 from pyz.vision import arc_tools
 from pyz import events
 from pyz import log
+from pyz import data
 
 ####################################
 
@@ -14,6 +15,45 @@ def say(s, r=400):
 
 CENTER = (0,0)
 
+####################################
+
+DAMAGE_DESCRIPTORS = [
+    (0.1, "near-broken"),
+    (0.2, "extremely damaged"),
+    (0.3, "heavily damaged"),
+    (0.4, "damaged"),
+    (0.5, "gouged"),
+    (0.6, "scraped"),
+    (0.7, "dented"),
+    (0.8, "scratched"),
+    (0.9, "worn"),
+    (1.0, ""),
+]
+
+def damage_descriptor(p):
+    assert 0 <= p <= 1.0
+
+    for (c, d) in DAMAGE_DESCRIPTORS:
+        if p < c:
+            val = d
+            break
+    else:
+        val = ""
+
+    return " " + val
+
+####################################
+
+def make(name, parent):
+    gob = GameObject(parent=parent)
+    data.reset(gob, "object", name)
+    return gob
+
+def occluders():
+    return GameObject.occluders()
+
+####################################
+
 class GameObject(object):
     """
     A GameObject is any physically-interactive
@@ -21,8 +61,29 @@ class GameObject(object):
     """
 
     record = []
+
+    @staticmethod
+    def age_all(grid, layer):
+        for obj in GameObject.record:
+            obj.age(grid, layer)
+
+    @staticmethod
+    def kill_dead():
+        dead = [obj for obj in GameObject.record if obj.dead]
+        for obj in dead:
+            GameObject.record.remove(obj)  # remove from record
+            obj.parent.objects.remove(obj) # remove from parent
+            # del obj
+
+    @staticmethod
+    def occluders():
+        """Dynamic!"""
+        return (obj for obj in GameObject.record if obj.occluder)
     
-    def __init__(self, parent, position=CENTER):
+    ####################################
+
+    def __init__(self, parent=None, position=CENTER):
+        self.dead = False
         self.parent = parent
         self._position = position # relative to parent, if any
         GameObject.record.append(self)
@@ -38,6 +99,27 @@ class GameObject(object):
 
     def age(self, grid, layer):
         pass
+
+    def damage(self, n):
+        if self.damageable:
+            self.health -= n
+            if self.health <= 0:
+                # self.parentgrid.news.add("The {} dies.".format(self.name))
+                self.dead = True
+                if hasattr(self, "s_death"):
+                    (sound, volume) = self.s_death
+                    audio.play_random(sound, volume)
+
+    ####################################
+
+    def __getattr__(self, key):
+        """Sexy."""
+
+        # DO error if asked for missing field:
+        if not key in vars(self) and key in data.ATTRIBUTES:
+            return False
+        else:
+            return vars(self)[key]
 
 
 class Item(GameObject):
@@ -65,12 +147,12 @@ class Lantern(Item, sightradius.SightRadius2D):
     Represets a radial light source.
     """
 
-    def __init__(self, radius, parent, position=CENTER):
+    def __init__(self, radius, parent, lifetick=20, position=CENTER):
         Item.__init__(self, parent, position)
         sightradius.SightRadius2D.__init__(self, radius) # default shellcache/blocktable
 
         self.can_age = False
-        self.lifetick = 10
+        self.lifetick = lifetick
         self.ticks = self.lifetick
 
     def age(self, grid, layer):
@@ -94,9 +176,9 @@ class Flashlight(Item, sightradius.ArcLight2D):
         sightradius.ArcLight2D.__init__(self, radius, angle, arc_length) # default shellcache/blocktable/angletable
 
         self.on = True
-        self.focus = (20,30)
+        self.focus = (20, 30)
         self.modes = ['static', 'facing', 'focus']
-        self.mode = 0
+        self.mode = 1
         self.focus_threshold = self.arc_length / 2
         self.focus_speed = 12
 
@@ -119,6 +201,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
     def toggle_mode(self):
         audio.play("weapons/trigger.aif", volume=0.2)
         self.mode = (self.mode + 1) % len(self.modes)
+        return self.modes[self.mode]
 
     def is_focusing(self):
         return self.modes[self.mode] == 'focus'
@@ -188,12 +271,12 @@ class Weapon(Item):
         self.damagetype = damagetype # damagetype vs beats??
 
     @log.logwrap
-    def attack_NODE(self, node, grid, layer, coord):
+    def attack(self, obj, grid, layer):
         # damage conditional on material?
-        if node.material in self.beats:
-            audio.play_attack(self.typ, node.material)
-            node.damage(self.damage)
-            grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, layer, coord))
+        audio.play_attack(self.typ, obj.material)
+        grid.visual_events_top.append(events.GenericInteractVisualEvent(grid, layer, obj.position()))
+        if obj.material in self.beats:
+            obj.damage(self.damage)
 
 WEAPONS = {}
 WEAPONS['axe1'] = Weapon('axe', ['cloth', 'wood'], 1, 'slicing')

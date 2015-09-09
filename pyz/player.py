@@ -1,9 +1,10 @@
 
 from pyz import objects
 
+
 class Player(objects.GameObject):
 
-    def __init__(self, parent=None, position=(20,20)):
+    def __init__(self, parent=None, position=(15,15)):
         objects.GameObject.__init__(self, parent, position)
 
         self.weapon = None

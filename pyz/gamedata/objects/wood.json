@@ -4,6 +4,23 @@
         "material": "wood"
     },
 
+    "tree":
+    {
+        "attributes"    : ["damageable", "occluder", "impassible"],
+        "appearances"   : "O",
+        "colors"        : ["brown"],
+        "material"      : "wood",
+        "health"        : 10,
+        "s_death"       : ["foley/tree/", 0.5],
+        "spawns":
+        {
+            "any":
+            {
+                "wooden log" : [1,2,2,2,3,3,4]
+            }
+        }
+    },
+
     "wooden log":
     {
         "size": 100,
@@ -11,5 +28,4 @@
         "mass": 3500,
         "attributes": ["sharpenable", "damageable"]
     }
-
 }

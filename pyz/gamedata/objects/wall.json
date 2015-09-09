@@ -1,0 +1,18 @@
+{
+    "stone wall":
+    {
+        "attributes"    : ["damageable", "occluder", "impassible"],
+        "appearances"   : "#",
+        "colors"        : ["gray"],
+        "material"      : "stone",
+        "health"        : 10,
+        "s_death"       : ["foley/tree/", 0.5],
+        "spawns":
+        {
+            "any":
+            {
+                "stone" : [1,2,2,2,3,3,4]
+            }
+        }
+    }
+}

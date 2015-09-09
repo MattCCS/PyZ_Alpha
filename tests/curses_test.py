@@ -11,9 +11,9 @@ def main(stdscr):
             for i in range(256):
                 # c = str(i)
                 c = curses.ACS_ULCORNER
-                # c = ord('a')
+                c = ord('a')
                 c = u'\u239e'
-                # c = u'\u2588'
+                c = u'\u2588'
                 # c = 9608
                 # c = u'\u239e'.encode("utf-8")
                 # c = u'\u0438'.encode('utf-8')

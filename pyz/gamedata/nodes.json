@@ -8,7 +8,7 @@
     "grass":
     {
 
-        "attributes"    : ["passable", "transparent"],
+        "attributes"    : [],
         "concealment"   : 3,
         "appearances"   : ",'\"`",
         "colors"        : ["green", "dark green"],
@@ -30,7 +30,7 @@
 
     "tall grass":
     {
-        "attributes"    : ["passable", "transparent"],
+        "attributes"    : [],
         "concealment"   : 15,
         "spawns":
         {
@@ -49,7 +49,7 @@
 
     "very tall grass":
     {
-        "attributes"    : ["passable"],
+        "attributes"    : ["occluder"],
         "concealment"   : 30,
         "appearances"   : "\\|/)(",
         "spawns":
@@ -69,7 +69,7 @@
 
     "dirt":
     {
-        "attributes"    : ["passable", "transparent"],
+        "attributes"    : [],
         "appearances"   : ".",
         "colors"        : ["brown", "maroon", "maroon", "maroon", "maroon"],
         "material"      : "dirt",
@@ -88,27 +88,9 @@
         }
     },
 
-    "tree":
-    {
-        "attributes"    : ["damageable"],
-        "appearances"   : "O",
-        "colors"        : ["brown"],
-        "material"      : "wood",
-        "health"        : 10,
-        "spawns":
-        {
-            "exclusive": {},
-            "any":
-            {
-                "%"             : 100,
-                "wooden log"    : 100
-            }
-        }
-    },
-
     "smoke":
     {
-        "attributes"    : ["passable"],
+        "attributes"    : ["occluder"],
         "appearances"   : "%&",
         "colors"        : ["gray"],
         "material"      : "grass"

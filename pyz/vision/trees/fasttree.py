@@ -1,7 +1,7 @@
 
 from pyz.vision.rays import arctracing
 from pyz import settings
-from pyz import utils
+from pyz.vision import utils
 
 import ast
 

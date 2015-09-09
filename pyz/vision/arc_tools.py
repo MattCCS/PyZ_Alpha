@@ -3,7 +3,7 @@ import math
 
 from pyz.vision import shell_tools
 from pyz import settings
-from pyz import utils
+from pyz.vision import utils
 
 ####################################
 
