@@ -1,20 +1,15 @@
-( DONE )
-+ removed old "has_player" flag
-+ improved color system (combined/dynamized)
-+ add side windows
-    + made game rendering PANEL-based
-    + window manager
-+ fixed resizing continuing game bug
-    + (required restructuring)
-+ fixed centering bug
-
-
-( TODO )
 - add crafting
-    - add objects
     - add drops
     - add dicts to acceptable JSON?
 - add combat
     - add entities
     - add AI
 - MAKE COLORS more robust (in terms of the Layer class)
+- change how attack sounds are determined
+- change how colors are determined (by material)
+    - make materials their own JSON type, with colors and densities, etc.
+- make the canvas-cycle timer global
+- make 'news' globally-accessible
+
+- improve JSON verification logging
+

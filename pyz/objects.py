@@ -107,7 +107,7 @@ class GameObject(object):
                 # self.parentgrid.news.add("The {} dies.".format(self.name))
                 self.dead = True
                 if hasattr(self, "s_death"):
-                    (sound, volume) = self.s_death
+                    (sound, volume) = self.s_death['sound'], self.s_death['volume']
                     audio.play_random(sound, volume)
 
     ####################################

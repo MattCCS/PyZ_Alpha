@@ -1,15 +1,14 @@
 
-from pyz import curses_prep
-
+# standard
 import random
 
+# project
+from pyz import curses_prep
 from pyz.gamedata import json_parser
 from pyz import audio
 from pyz import gameworld
 from pyz.vision.trees import fasttree
 from pyz import colors
-
-from pyz import log # <3
 
 ####################################
 # GLOBALS
@@ -21,7 +20,6 @@ Y = 50
 
 ####################################
 
-@log.logwrap
 def mainwrapped(stdscr):
     curses_prep.setup(stdscr)
 
@@ -50,7 +48,6 @@ def mainwrapped(stdscr):
 
     print(("\n"*(Y + 10)))
 
-@log.logwrap
 def main():
     json_parser.load_all()
     curses_prep.curses.wrapper(mainwrapped)

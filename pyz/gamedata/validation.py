@@ -35,31 +35,39 @@ def char(s):
     else:
         raise ValueError
 
-VALID_FIELDS = {
+TYPES = {
     "str"        : str,
     "int"        : int,
     "float"      : float,
     "char"       : char,
-    "list[str]"  : lambda L: [ str(s) for s in L],
-    "list[int]"  : lambda L: [ int(s) for s in L],
-    "list[char]" : lambda L: [char(s) for s in L],
-    # dicts...
+    "list:str"  : lambda L: [ str(s) for s in L],
+    "list:int"  : lambda L: [ int(s) for s in L],
+    "list:char" : lambda L: [char(s) for s in L],
 }
 
 def validate_as(data, typ):
     LOGGER.debug("Validating {} as {}".format(repr(data), repr(typ)))
-    asserteq(data, VALID_FIELDS[typ](data))
+    asserteq(data, TYPES[typ](data))
 
 def validate_attribute(attr):
     LOGGER.debug("Validating attr: {}".format(attr))
-    asserteq(set(attr.keys()), set(['description']))
-    validate_as(attr['description'], 'str')
+    if 'description' in attr:
+        validate_as(attr['description'], 'str')
 
 def validate_parameter(param):
+    param = dict(param)
+
     LOGGER.debug("Validating param: {}".format(param))
-    asserteq(set(param.keys()), set(['description', 'fields']))
-    validate_as(param['description'], 'str')
-    validate_as(param['fields'], 'list[str]')
-    LOGGER.debug("Validating fields...")
-    for field in param['fields']:
-        assertin(field, VALID_FIELDS)
+    if 'description' in param:
+        validate_as(param['description'], 'str')
+        del param['description']
+
+    if 'type' in param:
+        assert param['type'] in TYPES
+        assert len(param) == 1
+    elif '<obj>' in param.keys():
+        validate_parameter(param['<obj>'])
+        assert len(param) == 1
+    else:
+        for (_, val) in param.items():
+            validate_parameter(val)

@@ -202,20 +202,20 @@ class Grid2D(object):
         self.player.weapon = objects.WEAPONS['axe1']
         self.player_sneakwalksprint = 1
         self.player_stand_state = 2
-        self.player.lantern = objects.Lantern(10, self.player)
+        self.player.lantern = objects.Lantern(10, self.player, lifetick=50)
         self.player.lantern.can_age = True
         self.player.flashlight = objects.Flashlight(14, 20, self.player)
         # self.player.flashlight = objects.Flashlight(6, 150, self.player) # realistic lantern.
 
         lantern_coord = (17,9)
-        lantern = objects.Lantern(8, None, lantern_coord)
+        lantern = objects.Lantern(8, None)
         lantern.name = "lantern"
         lantern.appearance = 'A'
         lantern.color = "yellow"
         lantern.old_color = "yellow"
-        self.lightsources = [self.player.lantern, lantern]
-        self.nodes[lantern_coord].set("dirt")
+        self.lightsources = [self.player.flashlight, lantern]
         self.nodes[lantern_coord].objects.append(lantern)
+        lantern.parent = self.nodes[lantern_coord]
 
 
     def frame_coords_2D(self, width, height):
@@ -289,7 +289,7 @@ class Grid2D(object):
                 self.news.add("You bump into the blocky white abyss.")
                 # TODO: should be edge of AVAILABLE map
             elif self.nodes[(x,y)].is_passable():
-                audio.play_movement(self.player_stand_state, self.player_sneakwalksprint, self.nodes[(x,y)].material)
+                audio.play_movement(self.player_stand_state, self.player_sneakwalksprint, self.nodes[(x,y)].s_move)
                 self.player.set_position( (x,y) )
                 self.news.add("")
             else:

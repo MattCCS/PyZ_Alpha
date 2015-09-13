@@ -31,3 +31,4 @@ BIG CHANGES
 - NEED to make 'news' globally-accessible
 ! multiple coordinate-edge-radius values allow for "thick"/"thin" objects!  do this!
 
+( 9-10-15 / ? )

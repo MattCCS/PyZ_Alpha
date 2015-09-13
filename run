@@ -20,3 +20,7 @@ fi
 if [ $# -eq 1 ] && [ $1 -eq 3 ]; then
     python3 -m pyz.main
 fi
+
+if [ $# -eq 1 ] && [ $1 -eq 0 ]; then
+    python -i -B -m pyz.main
+fi

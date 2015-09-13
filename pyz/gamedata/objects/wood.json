@@ -9,14 +9,18 @@
         "attributes"    : ["damageable", "occluder", "impassible"],
         "appearances"   : "O",
         "colors"        : ["brown"],
-        "material"      : "wood",
         "health"        : 10,
-        "s_death"       : ["foley/tree/", 0.5],
+
+        "s_death":
+        {
+            "sound": "foley/tree/",
+            "volume": 0.5
+        },
         "spawns":
         {
             "any":
             {
-                "wooden log" : [1,2,2,2,3,3,4]
+                "wooden log": [1,3,2,1]
             }
         }
     },

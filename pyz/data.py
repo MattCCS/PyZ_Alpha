@@ -7,6 +7,7 @@ CLASSES = ["object", "node"]
 
 ATTRIBUTES  = {}
 PARAMETERS  = {}
+MATERIALS   = {}
 OBJECTS     = {}
 NODES       = {}
 OTHER       = {}

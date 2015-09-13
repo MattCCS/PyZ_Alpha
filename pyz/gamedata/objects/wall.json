@@ -4,9 +4,17 @@
         "attributes"    : ["damageable", "occluder", "impassible"],
         "appearances"   : "#",
         "colors"        : ["gray"],
-        "material"      : "stone",
         "health"        : 10,
-        "s_death"       : ["foley/tree/", 0.5],
+
+        "material"      : "stone",
+
+        "s_move"        : "stone",
+        "s_death":
+        {
+            "sound": "foley/tree/",
+            "volume": 0.5
+        },
+
         "spawns":
         {
             "any":

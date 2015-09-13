@@ -1,7 +1,8 @@
 {
     "*":
     {
-        "material": "rock"
+        "material": "stone",
+        "s_move": "rock"
     },
 
     "stone":

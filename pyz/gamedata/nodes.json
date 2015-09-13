@@ -12,18 +12,17 @@
         "concealment"   : 3,
         "appearances"   : ",'\"`",
         "colors"        : ["green", "dark green"],
-        "material"      : "grass",
+        "s_move"        : "grass",
         "spawns":
         {
             "exclusive": {},
             "any":
             {
-                "%": 100,
-                "gravel" : 1,
-                "talc": 0,
-                "flint": 1,
-                "stone": 5,
-                "heavy stone": 1
+                "gravel" : [99,1],
+                "talc": [100],
+                "flint": [99,1],
+                "stone": [95,5],
+                "heavy stone": [99,1]
             }
         }
     },
@@ -37,7 +36,6 @@
             "exclusive": {},
             "any":
             {
-                "%"             : 100,
                 "gravel"        : 1,
                 "talc"          : 0,
                 "flint"         : 1,
@@ -57,7 +55,6 @@
             "exclusive": {},
             "any":
             {
-                "%"             : 100,
                 "gravel"        : 1,
                 "talc"          : 0,
                 "flint"         : 1,
@@ -72,13 +69,12 @@
         "attributes"    : [],
         "appearances"   : ".",
         "colors"        : ["brown", "maroon", "maroon", "maroon", "maroon"],
-        "material"      : "dirt",
+        "s_move"        : "dirt",
         "spawns":
         {
             "exclusive": {},
             "any":
             {
-                "%"             : 100,
                 "gravel"        : 5,
                 "talc"          : 4,
                 "flint"         : 6,
@@ -92,8 +88,7 @@
     {
         "attributes"    : ["occluder"],
         "appearances"   : "%&",
-        "colors"        : ["gray"],
-        "material"      : "grass"
+        "colors"        : ["gray"]
     }
 
 }

@@ -22,7 +22,6 @@ class Node2D(object):
         self.reverse_video = False
 
         self.name = '---'
-        self.material = None
         self.appearance = None
         self.color = 0
         self.old_color = 0

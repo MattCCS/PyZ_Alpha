@@ -11,8 +11,9 @@ GAMEDATA_PATH = os.path.join(PROJECT_PATH, "gamedata")
 def absolutize_gamedata(path):
     return os.path.join(GAMEDATA_PATH, path)
 
-ATTRIBUTES_PATH = absolutize_gamedata("attributes.json")
-PARAMETERS_PATH = absolutize_gamedata("parameters.json")
+ATTRIBUTES_PATH = absolutize_gamedata("abstract/attributes.json")
+PARAMETERS_PATH = absolutize_gamedata("abstract/parameters.json")
+MATERIALS_PATH  = absolutize_gamedata("abstract/materials.json")
 LOAD_ORDER      = absolutize_gamedata("load_order.txt")
 
 ####################################
