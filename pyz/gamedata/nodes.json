@@ -36,11 +36,11 @@
             "exclusive": {},
             "any":
             {
-                "gravel"        : 1,
-                "talc"          : 0,
-                "flint"         : 1,
-                "stone"         : 5,
-                "heavy stone"   : 1
+                "gravel"        : [99,1],
+                "talc"          : [100],
+                "flint"         : [99,1],
+                "stone"         : [95,5],
+                "heavy stone"   : [99,1]
             }
         }
     },
@@ -55,11 +55,11 @@
             "exclusive": {},
             "any":
             {
-                "gravel"        : 1,
-                "talc"          : 0,
-                "flint"         : 1,
-                "stone"         : 5,
-                "heavy stone"   : 1
+                "gravel"        : [99,1],
+                "talc"          : [100],
+                "flint"         : [99,1],
+                "stone"         : [95,5],
+                "heavy stone"   : [99,1]
             }
         }
     },
@@ -75,11 +75,11 @@
             "exclusive": {},
             "any":
             {
-                "gravel"        : 5,
-                "talc"          : 4,
-                "flint"         : 6,
-                "stone"         : 12,
-                "heavy stone"   : 3
+                "gravel"        : [99,5],
+                "talc"          : [96,4],
+                "flint"         : [94,6],
+                "stone"         : [88,12],
+                "heavy stone"   : [97,3]
             }
         }
     },

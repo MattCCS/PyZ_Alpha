@@ -1,4 +1,6 @@
 
+import random
+
 from pyz import audio
 from pyz.vision import utils
 from pyz.vision import sightradius
@@ -109,6 +111,20 @@ class GameObject(object):
                 if hasattr(self, "s_death"):
                     (sound, volume) = self.s_death['sound'], self.s_death['volume']
                     audio.play_random(sound, volume)
+                if hasattr(self, 'spawns'):
+                    node = GRID.nodes[self.position()]
+                    # TODO: this seems slow, but it makes sense.
+                    for (obj_name, odds) in self.spawns['any'].items():
+                        r = random.randint(1, sum(odds))
+                        for (idx, odd) in enumerate(odds):
+                            r -= odd
+                            if r <= 0:
+                                break
+
+                        for _ in xrange(idx):
+                            obj = make(obj_name, node)
+                            node.objects.append(obj)
+
 
     ####################################
 
@@ -175,7 +191,7 @@ class Flashlight(Item, sightradius.ArcLight2D):
         Item.__init__(self, parent, position)
         sightradius.ArcLight2D.__init__(self, radius, angle, arc_length) # default shellcache/blocktable/angletable
 
-        self.on = True
+        self.on = False
         self.focus = (20, 30)
         self.modes = ['static', 'facing', 'focus']
         self.mode = 1

@@ -118,6 +118,8 @@ class Grid2D(object):
 
     def __init__(self, stdscr, x, y):
 
+        objects.GRID = self
+
         self.MAIN = layers.LayerManager("main", (80,24),
             sublayers=[
                 # (0, 0, layers.LayerManager("main_border", (80, 24))),
@@ -205,6 +207,7 @@ class Grid2D(object):
         self.player.lantern = objects.Lantern(10, self.player, lifetick=50)
         self.player.lantern.can_age = True
         self.player.flashlight = objects.Flashlight(14, 20, self.player)
+        # self.player.flashlight.toggle()
         # self.player.flashlight = objects.Flashlight(6, 150, self.player) # realistic lantern.
 
         lantern_coord = (17,9)
@@ -213,7 +216,7 @@ class Grid2D(object):
         lantern.appearance = 'A'
         lantern.color = "yellow"
         lantern.old_color = "yellow"
-        self.lightsources = [self.player.flashlight, lantern]
+        self.lightsources = [self.player.lantern, self.player.flashlight, lantern]
         self.nodes[lantern_coord].objects.append(lantern)
         lantern.parent = self.nodes[lantern_coord]
 

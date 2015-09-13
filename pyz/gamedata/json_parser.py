@@ -21,7 +21,7 @@ REQUIRED_INDICATOR = "!"
 ATTRIBUTES_INDICATOR = "attributes"
 MATERIAL_INDICATOR = "material"
 
-PARAM_EXCEPTIONS = ["spawns"]   # <---<<< these are ignored -- equiv. to commenting the JSON
+PARAM_EXCEPTIONS = []   # <---<<< these are ignored -- equiv. to commenting the JSON
 
 ####################################
 
@@ -58,8 +58,9 @@ def confirm_parameter(data_, param=None, param_name=None):
         param = data.PARAMETERS[param_name]
 
     # COPY
-    printdebug(data_)
-    printdebug(param)
+    print
+    print 'data:', data_
+    print 'param:', param
     if type(data_) is dict:
         data_ = dict(data_)
         if 'description' in data_:
@@ -78,7 +79,9 @@ def confirm_parameter(data_, param=None, param_name=None):
     elif '<obj>' in param:
         assert len(param) == 1 # TODO: ?
         for (ok, ov) in data_.items():
-            assert ok in data.OBJECTS
+            print ok
+            print ov
+            # assert ok in data.OBJECTS
             confirm_parameter(ov, param=param['<obj>'])
     else:
         for (pk, pv) in param.items():
