@@ -25,13 +25,11 @@ class Node2D(object):
         self.appearance = None
         self.color = 0
         self.old_color = 0
-        self.damageable = False
         self.health = 0
         self.objects = []
         self._object_render_last_tick = 0
         self._object_render_threshold = 0.8
         self._object_render_index = 0 # always mod, in case this number has changed
-        self.set("dirt")
 
     def position(self):
         return self.coord
@@ -43,7 +41,7 @@ class Node2D(object):
     # attribute assignment
 
     def set(self, name):
-        data.reset(self, 'node', name)
+        objects.reset(self, 'node', name)
 
     def add(self, name):
         self.objects.append(objects.make(name, self))

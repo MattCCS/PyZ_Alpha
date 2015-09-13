@@ -51,6 +51,29 @@ def make(name, parent):
     data.reset(gob, "object", name)
     return gob
 
+def reset(obj, cat, name):
+    data.reset(obj, cat, name)
+    if hasattr(obj, 'spawn_birth'):
+        spawn(obj, key='spawn_birth')
+
+def spawn(parent_obj, key='spawn_birth'):
+    assert key in ['spawn_birth', 'spawn_death']
+
+    node = GRID.nodes[parent_obj.position()]
+
+    # TODO: this seems slow, but it makes sense.
+
+    for (obj_name, odds) in getattr(parent_obj, key)['any'].items():
+        r = random.randint(1, sum(odds))
+        for (idx, odd) in enumerate(odds):
+            r -= odd
+            if r <= 0:
+                break
+
+        for _ in xrange(idx):
+            obj = make(obj_name, node)
+            node.objects.append(obj)
+
 def occluders():
     return GameObject.occluders()
 
@@ -111,19 +134,8 @@ class GameObject(object):
                 if hasattr(self, "s_death"):
                     (sound, volume) = self.s_death['sound'], self.s_death['volume']
                     audio.play_random(sound, volume)
-                if hasattr(self, 'spawns'):
-                    node = GRID.nodes[self.position()]
-                    # TODO: this seems slow, but it makes sense.
-                    for (obj_name, odds) in self.spawns['any'].items():
-                        r = random.randint(1, sum(odds))
-                        for (idx, odd) in enumerate(odds):
-                            r -= odd
-                            if r <= 0:
-                                break
-
-                        for _ in xrange(idx):
-                            obj = make(obj_name, node)
-                            node.objects.append(obj)
+                if hasattr(self, 'spawn_death'):
+                    spawn(self, key='spawn_death')
 
 
     ####################################

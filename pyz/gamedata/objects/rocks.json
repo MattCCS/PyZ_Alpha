@@ -9,21 +9,24 @@
     {
         "size": 10,
         "hardness": 5,
-        "mass": 350
+        "mass": 350,
+        "appearances": "o"
     },
 
     "heavy stone":
     {
         "size": 12,
         "hardness": 5,
-        "mass": 500
+        "mass": 500,
+        "appearances": "o"
     },
 
     "talc":
     {
         "size": 10,
         "hardness": 1,
-        "mass": 50
+        "mass": 50,
+        "appearances": "*"
     },
 
     "flint":
@@ -31,14 +34,16 @@
         "size": 10,
         "hardness": 7,
         "mass": 350,
-        "attributes": ["knappable"]
+        "attributes": ["knappable"],
+        "appearances": "%"
     },
 
     "gravel":
     {
         "size": 5,
         "hardness": 5,
-        "mass": 150
+        "mass": 150,
+        "appearances": "."
     }
 
 }

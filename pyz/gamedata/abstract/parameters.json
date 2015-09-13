@@ -76,7 +76,19 @@
         "volume": { "type": "float" }
     },
 
-    "spawns":
+    "spawn_birth":
+    {
+        "description": "...",
+        "any": {
+            "description": "...",
+            "<obj>": {
+                "description": "Histogram of spawn odds from [0,1,2...]",
+                "type": "list:int"
+            }
+        }
+    },
+
+    "spawn_death":
     {
         "description": "...",
         "any": {

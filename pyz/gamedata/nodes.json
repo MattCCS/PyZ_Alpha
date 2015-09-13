@@ -13,16 +13,16 @@
         "appearances"   : ",'\"`",
         "colors"        : ["green", "dark green"],
         "s_move"        : "grass",
-        "spawns":
+        "spawn_birth":
         {
             "exclusive": {},
             "any":
             {
-                "gravel" : [99,1],
-                "talc": [100],
-                "flint": [99,1],
-                "stone": [95,5],
-                "heavy stone": [99,1]
+                "gravel"      : [999,1],
+                "talc"        : [999,1],
+                "flint"       : [999,1],
+                "stone"       : [999,1],
+                "heavy stone" : [999,1]
             }
         }
     },
@@ -31,16 +31,16 @@
     {
         "attributes"    : [],
         "concealment"   : 15,
-        "spawns":
+        "spawn_birth":
         {
             "exclusive": {},
             "any":
             {
-                "gravel"        : [99,1],
-                "talc"          : [100],
-                "flint"         : [99,1],
-                "stone"         : [95,5],
-                "heavy stone"   : [99,1]
+                "gravel"      : [999,1],
+                "talc"        : [999,1],
+                "flint"       : [999,1],
+                "stone"       : [999,1],
+                "heavy stone" : [999,1]
             }
         }
     },
@@ -50,16 +50,16 @@
         "attributes"    : ["occluder"],
         "concealment"   : 30,
         "appearances"   : "\\|/)(",
-        "spawns":
+        "spawn_birth":
         {
             "exclusive": {},
             "any":
             {
-                "gravel"        : [99,1],
-                "talc"          : [100],
-                "flint"         : [99,1],
-                "stone"         : [95,5],
-                "heavy stone"   : [99,1]
+                "gravel"      : [999,1],
+                "talc"        : [999,1],
+                "flint"       : [999,1],
+                "stone"       : [999,1],
+                "heavy stone" : [999,1]
             }
         }
     },
@@ -70,16 +70,16 @@
         "appearances"   : ".",
         "colors"        : ["brown", "maroon", "maroon", "maroon", "maroon"],
         "s_move"        : "dirt",
-        "spawns":
+        "spawn_birth":
         {
             "exclusive": {},
             "any":
             {
-                "gravel"        : [99,5],
-                "talc"          : [96,4],
-                "flint"         : [94,6],
-                "stone"         : [88,12],
-                "heavy stone"   : [97,3]
+                "gravel"        : [99,1],
+                "talc"          : [99,1],
+                "flint"         : [99,1],
+                "stone"         : [99,1],
+                "heavy stone"   : [99,1]
             }
         }
     },

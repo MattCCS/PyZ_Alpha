@@ -15,7 +15,7 @@
             "volume": 0.5
         },
 
-        "spawns":
+        "spawn_death":
         {
             "any":
             {

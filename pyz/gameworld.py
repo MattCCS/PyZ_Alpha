@@ -48,8 +48,8 @@ BORDER_BLOCK = u'█'
 
 ####################################
 
-BLOCK_CHANCE_MIN = 20
-BLOCK_CHANCE_MAX = 80
+BLOCK_CHANCE_MIN = 50
+BLOCK_CHANCE_MAX = 50
 
 RESERVED_X = 20
 RESERVED_Y = 8
@@ -144,6 +144,8 @@ class Grid2D(object):
         self._truey = y
 
         self.nodes = {coord : node.Node2D(self, coord) for coord in yield_coords( (self.x, self.y) )}
+        for (_, node_obj) in self.nodes.items():
+            node_obj.set("dirt")
 
         # make trees
         for _ in range(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
@@ -302,12 +304,19 @@ class Grid2D(object):
                     time.sleep(0.2)
                     # TODO:  CANNOT INTERACT IF CAN'T SEE ??????
                 elif self.player.prefs.auto_attack and self.player.weapon:
+                    obj = None
                     objs = self.nodes[(x,y)].objects
+
                     if len(objs) == 1:
                         obj = objs[0]
-                        if obj.damageable:
-                            self.news.add("You chop the {}!".format(obj.name))
-                            self.player.weapon.attack(obj, self, layers.get("gameworld"))
+                    else:
+                        damageable_objs = [obj for obj in objs if obj.damageable]
+                        if len(damageable_objs) == 1:
+                            obj = damageable_objs[0]
+
+                    if obj and obj.damageable:
+                        self.news.add("You chop the {}!".format(obj.name))
+                        self.player.weapon.attack(obj, self, layers.get("gameworld"))
                 else:
                     self.news.add("You bump into the {}.".format(self.nodes[(x,y)].name))
 
