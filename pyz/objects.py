@@ -66,7 +66,7 @@ def spawn(owner, rate):
             if r <= 0:
                 break
 
-        for _ in xrange(idx):
+        for _ in range(idx): # python 2/3
             obj = make(obj_name, owner)
 
 def reset(owner, cat, name):
@@ -103,7 +103,7 @@ class ObjectSet(object):
         return len(self.objects)
 
     def __getitem__(self, index):
-        return self.objects.keys()[index]
+        return list(self.objects.keys())[index] # python 2/3
 
 ####################################
 
