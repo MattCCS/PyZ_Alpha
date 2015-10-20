@@ -58,9 +58,9 @@ def confirm_parameter(data_, param=None, param_name=None):
         param = data.PARAMETERS[param_name]
 
     # COPY
-    print
-    print 'data:', data_
-    print 'param:', param
+    # print
+    # print 'data:', data_
+    # print 'param:', param
     if type(data_) is dict:
         data_ = dict(data_)
         if 'description' in data_:
@@ -79,8 +79,8 @@ def confirm_parameter(data_, param=None, param_name=None):
     elif '<obj>' in param:
         assert len(param) == 1 # TODO: ?
         for (ok, ov) in data_.items():
-            print ok
-            print ov
+            # print ok
+            # print ov
             # assert ok in data.OBJECTS
             confirm_parameter(ov, param=param['<obj>'])
     else:

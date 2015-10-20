@@ -1,6 +1,4 @@
 
-from pyz import log
-from pyz.say import say
 
 class Event(object):
     """
@@ -10,9 +8,10 @@ class Event(object):
     Does nothing when dead, but should be removed.
     """
 
-    def __init__(self, grid, layer, coord):
+    def __init__(self, manager, grid, layer, coord):
+        self.manager = manager
         self.grid = grid
-        self.screen = layer
+        self.layer = layer
         self.coord = coord
 
         self.dead = False
@@ -24,15 +23,14 @@ class Event(object):
 
 class GenericInteractVisualEvent(Event):
 
-    def __init__(self, grid, layer, coord):
-        Event.__init__(self, grid, layer, coord)
-        grid.requested_waits.append(0.1)
+    def __init__(self, manager, grid, layer, coord):
+        Event.__init__(self, manager, grid, layer, coord)
+        self.manager.requested_waits.append(0.1)
 
         self.ticks = 2
 
         self.step() # initialize visual effect so it takes effect THIS turn
 
-    @log.logwrap
     def step(self):
         if self.dead:
             return
@@ -50,8 +48,8 @@ class GenericInteractVisualEvent(Event):
 
 class GenericFocusEvent(Event):
 
-    def __init__(self, grid, layer, coord):
-        Event.__init__(self, grid, layer, coord)
+    def __init__(self, manager, grid, layer, coord):
+        Event.__init__(self, manager, grid, layer, coord)
 
         self.step()
 
@@ -66,8 +64,8 @@ class GenericFocusEvent(Event):
 
 class FacingEvent(Event):
 
-    def __init__(self, grid, layer, coord, arc, start, target, speed):
-        Event.__init__(self, grid, layer, coord)
+    def __init__(self, manager, grid, layer, coord, arc, start, target, speed):
+        Event.__init__(self, manager, grid, layer, coord)
 
         assert 0 <= (start + target) <= 720
         assert speed > 0
@@ -90,7 +88,6 @@ class FacingEvent(Event):
 
         self.step()
 
-    @log.logwrap
     def step(self):
 
         if self.dead:

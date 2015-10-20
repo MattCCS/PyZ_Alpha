@@ -1,5 +1,6 @@
 (This file is for per-feature progress reporting, for review afterward)
 
+
 ( 9-8-15 / Object integration )
 + have objects render-cycling, on a (near-)global timer
     + if timeout, no game update/aging occurs (hopefully)
@@ -9,6 +10,7 @@
 + made "passability" check for objects
 + made lantern an object (on the ground)
 + MADE OCCLUSION DYNAMIC <3
+
 
 ( 9-9-15 / ... )
 BIG CHANGES
@@ -31,4 +33,31 @@ BIG CHANGES
 - NEED to make 'news' globally-accessible
 ! multiple coordinate-edge-radius values allow for "thick"/"thin" objects!  do this!
 
-( 9-10-15 / ? )
+
+( 9-13-15 / Flexible JSON data, object drops )
++ JSON data acceptance overhauled, particularly properties.json -- can now be infinitely nested and dynamic with <obj> tag
++ materials are now essentialy sub-objects, to hold sensible default values
++ birth/death spawns implemented, with histrogram-determined rates
++ added version info
++ made auto-attack work if only 1 Object is .damageable
+- NEED to separate Grid data from Grid MANAGEMENT code!
+- NEED to add inventory + weight limits
+- NEED to add generic bounded/unbounded "focus"/"select" Event
+
+
+( 9-13-15 / Split up/decouple Grid2D from Grid2DManager )
+~ can't remember... this was a while ago.
+~ but basically, Grid2D now deals with the actual grid coordinate conversion
+~ Grid2D Manager deals with the rest -- needs to be split up more still
+
+
+( 10-20-15 / Make the Object/Node/Parent system more sane )
++ added Parentable (and ObjectSet) classes -- both Node and GameObject inherit from Parentable,
+  which means they can have objects (as children) and can have parents -- except Nodes never do.
++ got rid of position!  Now position is linked directly to the parent's position, recursively up to the Node
++ fixed bug where objects were somehow added twice to the .objects list by making it an ordered set (ObjectSet)
+- NEED to keep separating Grid data from Grid MANAGEMENT code!
+- NEED to add inventory, etc.
+- NEED to add "focus" action, etc.
+
+

@@ -1,3 +1,8 @@
+"""
+
+
+Author: Matthew Cotton
+"""
 
 class NewsWindow(object):
     
@@ -14,3 +19,6 @@ class NewsWindow(object):
 
     def latest(self, n):
         return reversed(self.news[:-n-1:-1]) # yep, this is it.
+
+
+NEWS = NewsWindow()

@@ -1,20 +1,21 @@
 
+# standard
 import time
-import random
 
-from pyz import audio
-from pyz import data
+# custom
 from pyz import colors
 from pyz import objects
 from pyz.curses_prep import curses
 from pyz.curses_prep import CODE
 
+####################################
 
-class Node2D(object):
+class Node2D(objects.Parentable):
 
     ERROR  = '!'
 
     def __init__(self, parentgrid, coord):
+        objects.Parentable.__init__(self, parent=None)
 
         self.parentgrid = parentgrid
         self.coord = coord
@@ -26,13 +27,15 @@ class Node2D(object):
         self.color = 0
         self.old_color = 0
         self.health = 0
-        self.objects = []
         self._object_render_last_tick = 0
         self._object_render_threshold = 0.8
         self._object_render_index = 0 # always mod, in case this number has changed
 
     def position(self):
         return self.coord
+
+    def superparent(self):
+        return self
 
     def is_passable(self):
         return not any(obj.impassible for obj in self.objects)
@@ -44,7 +47,7 @@ class Node2D(object):
         objects.reset(self, 'node', name)
 
     def add(self, name):
-        self.objects.append(objects.make(name, self))
+        objects.make(name, self)
 
     ####################################
 

@@ -75,11 +75,11 @@
             "exclusive": {},
             "any":
             {
-                "gravel"        : [99,1],
-                "talc"          : [99,1],
-                "flint"         : [99,1],
-                "stone"         : [99,1],
-                "heavy stone"   : [99,1]
+                "gravel"        : [399,1],
+                "talc"          : [399,1],
+                "flint"         : [399,1],
+                "stone"         : [399,1],
+                "heavy stone"   : [399,1]
             }
         }
     },

@@ -32,7 +32,7 @@ def mainwrapped(stdscr):
     # grid
     stdscr.addstr(2, 0, "Creating game grid...")
     stdscr.refresh()
-    GRID = gameworld.Grid2D(stdscr, X, Y)
+    GRID = gameworld.GridManager2D(stdscr, X, Y)
 
     try:
         stdscr.addstr(3, 0, "Playing...")

@@ -4,8 +4,12 @@ from pyz import objects
 
 class Player(objects.GameObject):
 
-    def __init__(self, parent=None, position=(15,15)):
-        objects.GameObject.__init__(self, parent, position)
+    def __init__(self, parent=None):
+        objects.GameObject.__init__(self, parent)
+        if self.parent:
+            self.parent.objects.add(self)
+
+        self.name = "Player"
 
         self.weapon = None
 

@@ -6,10 +6,7 @@ import subprocess
 import threading
 import time
 
-if __name__ == '__main__':
-    from . import settings
-else:
-    from pyz import settings
+from pyz import settings
 
 ####################################
 
@@ -89,16 +86,3 @@ def play_attack(weapon, material, volume=1.0):
     relpath = "weapons/{}/{}".format(weapon, material)
     fname = random_file_from_dir(absolutize(relpath))
     play(os.path.join(relpath, fname), volume=volume)
-
-####################################
-
-if __name__ == '__main__':
-    # files = []
-    # files.append('/Users/Matt/Documents/CLASS_FOLDERS/Fall 2013/Game Interface Design/Final Project/Group3Version2/resources/sounds/click.wav')
-    # files.append('/Users/Matt/Documents/CLASS_FOLDERS/Fall 2013/Game Interface Design/Final Project/Group3Version2/resources/sounds/shell.wav')
-    # files.append('/Users/Matt/Documents/CLASS_FOLDERS/Fall 2013/Game Interface Design/Final Project/Group3Version2/resources/sounds/pistol_shot.wav')
-    # files.append('/Users/Matt/Documents/CLASS_FOLDERS/Fall 2013/Game Interface Design/Final Project/Group3Version2/resources/sounds/pistol_reload.wav')
-
-    # for path in files:
-    #     play(path)
-    play_movement(2, 1, 'dirt')
