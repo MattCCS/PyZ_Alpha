@@ -7,7 +7,7 @@
 
     "stone":
     {
-        "size": 10,
+        "size": 8,
         "hardness": 5,
         "mass": 350,
         "appearances": "o"
@@ -23,7 +23,7 @@
 
     "talc":
     {
-        "size": 10,
+        "size": 8,
         "hardness": 1,
         "mass": 50,
         "appearances": "*"
@@ -31,7 +31,7 @@
 
     "flint":
     {
-        "size": 10,
+        "size": 8,
         "hardness": 7,
         "mass": 350,
         "attributes": ["knappable"],
@@ -40,7 +40,7 @@
 
     "gravel":
     {
-        "size": 5,
+        "size": 4,
         "hardness": 5,
         "mass": 150,
         "appearances": "."

@@ -3,13 +3,21 @@ import random
 
 ####################################
 
-CLASSES = ["object", "node"]
+CLASSES = ["object", "item", "node"]
 
+# meta
 ATTRIBUTES  = {}
 PARAMETERS  = {}
+
+# sub-meta
 MATERIALS   = {}
+
+# concrete for the player
 OBJECTS     = {}
+ITEMS       = {}
 NODES       = {}
+
+# misc, maybe for testing
 OTHER       = {}
 
 ####################################
@@ -18,13 +26,18 @@ def reset(obj, cat, name):
     """
     Set the default fields of the given object to those of the given name.
 
-    ex:  set('grass', obj)
+    ex:  set('grass', 'node', obj)
+    ex:  set('grass', 'object', obj)
     """
     assert cat in CLASSES
     if cat == "node":
         NODES[name].set(obj)
-    else:
+    elif cat == "item":
+        ITEMS[name].set(obj)
+    elif cat == 'object':
         OBJECTS[name].set(obj)
+    else:
+        raise NotImplementedError()
 
 
 class DataObject(object):
@@ -42,6 +55,8 @@ class DataObject(object):
         elif cat == "object":
             OBJECTS[self.name] = self
         elif cat == "item":
+            ITEMS[self.name] = self
+        else:
             pass
 
     def set(self, obj):

@@ -1,3 +1,5 @@
+- add inventory
+    - add containers
 - add crafting
 - add combat
     - add entities
@@ -8,4 +10,6 @@
 - make 'news' globally-accessible
 
 - improve JSON verification logging
+
++ Craig Tree achievement
 

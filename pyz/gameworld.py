@@ -17,6 +17,7 @@ from pyz.vision.rays import arctracing
 from pyz.vision import shell_tools
 from pyz.vision import utils
 from pyz import layers
+from pyz import containers
 
 from pyz import grid2d
 from pyz.grid2d import GRID
@@ -174,26 +175,30 @@ class GridManager2D(object):
                 if not GRID.nodes[pos].objects:
                     GRID.nodes[pos].add("stone wall")
 
-        x1 = objects.GameObject()
+        (cx, cy) = (20, 9)
+        _parent = GRID.nodes[(cx, cy)]
+
+        x1 = objects.Item(_parent)
+        x1.size = 4
         x1.name = 'ruby'
         x1.appearance = "*"
         x1.color = "red"
 
-        x2 = objects.GameObject()
-        x2.name = 'amulet'
-        x2.appearance = "@"
-        x2.color = "blue"
+        # x2 = objects.Item(_parent)
+        # x2.size = 6
+        # x2.name = 'amulet'
+        # x2.appearance = "@"
+        # x2.color = "blue"
 
-        (cx, cy) = (20, 9)
-        GRID.nodes[(cx, cy)].objects.add(x1,x2)
         # player and lantern
         self.player = player.Player(GRID.nodes[(15,15)])
         self.player.weapon = objects.WEAPONS['axe1']
         objects.WEAPONS['axe1'].set_parent(self.player)
+        self.player.container = containers.Container(30, self.player)
         self.player_sneakwalksprint = 1
         self.player_stand_state = 2
-        self.player.lantern = objects.Lantern(10, self.player, lifetick=50)
-        self.player.lantern.can_age = True
+        # self.player.lantern = objects.Lantern(10, self.player, lifetick=50)
+        # self.player.lantern.can_age = True
         self.player.flashlight = objects.Flashlight(14, 20, self.player)
         # self.player.flashlight.toggle()
         # self.player.flashlight = objects.Flashlight(6, 150, self.player) # realistic lantern.
@@ -201,10 +206,11 @@ class GridManager2D(object):
         lantern_coord = (17,9)
         lantern = objects.Lantern(8, None)
         lantern.name = "lantern"
+        lantern.size = 20
         lantern.appearance = 'A'
         lantern.color = "yellow"
         lantern.old_color = "yellow"
-        self.lightsources = [self.player.lantern, self.player.flashlight, lantern]
+        self.lightsources = [self.player.flashlight, lantern]
         GRID.nodes[lantern_coord].objects.add(lantern)
         lantern.parent = GRID.nodes[lantern_coord]
 
@@ -213,9 +219,9 @@ class GridManager2D(object):
         ####################################
         # updating
         (oldx, oldy) = self.player.position()
+        (x,y) = self.player.position()
         if key in ARROW_KEYS:
 
-            (x,y) = self.player.position()
             if key == curses.KEY_UP:
                 y = min(y+1, self.y-1)
             elif key == curses.KEY_DOWN:
@@ -284,6 +290,43 @@ class GridManager2D(object):
                 audio.play('movement/changing/nonprone.aif')
         elif key == ord('l'):
             NEWS.add("You see: {}".format(', '.join(obj.name for obj in GRID.nodes[self.player.position()].objects if obj is not self.player)))
+        elif key == ord('p'):
+            items = [obj for obj in GRID.nodes[(x,y)].objects if isinstance(obj, objects.Item)]
+            n = len(items)
+            if n == 0:
+                NEWS.add("There's nothing to pick up!")
+            elif n == 1:
+                if not self.player.container:
+                    NEWS.add("You don't have a container!")
+                else:
+                    item = items[0]
+                    res = self.player.container.store(item)
+                    if res:
+                        NEWS.add("Added {}[{}] to your container ({} left).".format(item.name, item.size, self.player.container.remaining))
+                    else:
+                        NEWS.add("Not enough room for {}[{}] -- {} left!".format(item.name, item.size, self.player.container.remaining))
+            else:
+                NEWS.add("[!] Not implemented yet!")
+        elif key == ord('i'):
+            if self.player.container:
+                NEWS.add("You are holding: {}".format(repr([item.name for item in self.player.container.items])))
+            else:
+                NEWS.add("You don't have a container to check!")
+        elif key == ord('d'):
+            if self.player.container:
+                items = self.player.container.items
+                if len(items) == 0:
+                    NEWS.add("No items to drop.")
+                if len(items) == 1:
+                    item = list(items)[0]
+                    self.player.container.remove(item)
+                    item.set_parent(GRID.nodes[(x,y)])
+                    NEWS.add("Dropped {}.".format(item.name))
+                else:
+                    NEWS.add("[!] Not implemented!")
+            else:
+                NEWS.add("You don't have an inventory!") # TODO:  this is incorrect -- e.g. weapons + clothes.
+
 
         if hasattr(self.player, 'flashlight'):
             _layer = layers.get("gameworld")
@@ -549,6 +592,7 @@ class GridManager2D(object):
         print("Quit.")
 
     def play(self):
+
         try:
             self.playwrap()
         except Exception as e:

@@ -12,6 +12,8 @@ class Player(objects.GameObject):
         self.name = "Player"
 
         self.weapon = None
+        # self.inventory = set() # set of containers
+        self.container = None
 
         self.prefs = Preferences()
 

@@ -49,11 +49,18 @@ def damage_descriptor(p):
 ####################################
 
 def make(name, parent=None):
-    """For objects?"""
-    gob = GameObject(parent=parent)
-    data.reset(gob, "object", name)
+    """For objects and items"""
+
+    if name in data.ITEMS:
+        gob = Item(parent=parent)
+        data.reset(gob, "item", name)
+    else:
+        gob = GameObject(parent=parent)
+        data.reset(gob, "object", name)
+
     if parent is not None:
         parent.objects.add(gob)
+
     return gob
 
 def spawn(owner, rate):
@@ -171,7 +178,7 @@ class GameObject(Parentable):
     
     ####################################
 
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         Parentable.__init__(self, parent=parent)
         self.dead = False
         GameObject.record.append(self)
@@ -198,7 +205,6 @@ class GameObject(Parentable):
             spawn(self.superparent(), self.spawn_death)
             pass
         self.remove_parent()
-
 
     ####################################
 
@@ -320,31 +326,6 @@ class Flashlight(Item, sightradius.ArcLight2D):
     def age(self, manager, grid, layer):
         if self.on and self.is_focusing() and self.facing_away():
             self.update(manager, grid, layer)
-
-
-class Container(Item):
-
-    def __init__(self, capacity, parent):
-        Item.__init__(self, parent=parent)
-        self.items = set()
-        self.capacity = capacity
-        self.remaining = self.capacity
-
-    def store(self, item):
-        if self.remaining - item.size() < 0:
-            return False
-        else:
-            self.remaining -= item.size()
-            self.items.add(item)
-            return True
-
-    def remove(self, item):
-        if item in self.items:
-            self.items.remove(item)
-            self.remaining += item.size()
-            return True
-        else:
-            return False # not found
 
 
 class Weapon(Item):

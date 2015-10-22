@@ -61,3 +61,10 @@ BIG CHANGES
 - NEED to add "focus" action, etc.
 
 
+( 10-22-15 / Containers/Inventory and Items vs. Objects )
++ added Containers
++ added inventory
++ added controls:  (p)ick up, (d)rop, (i)nventory
+~ NOTE:  can only pick up/drop when it's unambiguous -- otherwise, a menu will have to come up.
+- NEED to implement floating menus!
+- NEED to fix dealing with multiple items

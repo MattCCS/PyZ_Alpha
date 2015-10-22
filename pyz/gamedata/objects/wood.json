@@ -24,23 +24,5 @@
                 "twig": [0,1,2,3,5,2,1]
             }
         }
-    },
-
-    "wooden log":
-    {
-        "size": 100,
-        "hardness": 2,
-        "mass": 3500,
-        "attributes": ["sharpenable", "damageable"],
-        "appearances": "\\/="
-    },
-
-    "twig":
-    {
-        "size": 10,
-        "hardness": 2,
-        "mass": 350,
-        "attributes": ["sharpenable", "damageable"],
-        "appearances": "-l"
     }
 }

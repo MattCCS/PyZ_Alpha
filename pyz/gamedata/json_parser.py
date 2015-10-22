@@ -130,7 +130,9 @@ def load_order():
 
 ####################################
 
-def validate_and_save_objects(objects, save=True):
+def validate_and_save_objects(cat, objects, save=True):
+
+    assert cat in ('object', 'item')
 
     # TODO: DEFAULTS AREN'T VALIDATED!  (well, they are later.)
 
@@ -174,7 +176,7 @@ def validate_and_save_objects(objects, save=True):
             del obj[ATTRIBUTES_INDICATOR]
 
         if save:
-            data.DataObject("object", name, obj)
+            data.DataObject(cat, name, obj)
 
 def validate_and_save_nodes(nodes):
     defaults = nodes.get(DEFAULT_INDICATOR, {})
@@ -218,10 +220,20 @@ def load(path):
     key = path.rstrip(os.path.sep)
 
     if path.endswith(os.path.sep):
+        path = path.rstrip(os.path.sep)
+        if path == 'objects':
+            cat = 'object'
+        elif path == 'items':
+            cat = 'item'
+        else:
+            raise NotImplementedError()
+
         files = load_path(key)
+
         for filename in files:
             print(("... Loading {}...".format(filename)))
-            validate_and_save_objects(load_file(os.path.join(path, filename)))
+            validate_and_save_objects(cat, load_file(os.path.join(path, filename)))
+
     elif path.endswith('nodes'):
         node_data = load_file(path + '.json')
         validate_and_save_nodes(node_data)
