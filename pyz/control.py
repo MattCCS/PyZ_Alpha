@@ -13,6 +13,10 @@ class Controller(object):
 
     __metaclass__ = abc.ABCMeta
 
+    def __init__(self, controlmanager):
+        self.controlmanager = controlmanager
+        self.controlmanager.add_controller(self)
+
     @abc.abstractmethod
     def interact(self, key):
         """

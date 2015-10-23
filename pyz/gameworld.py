@@ -4,12 +4,12 @@ import random
 import time
 import sys
 
-from pyz.curses_prep import CODE
 from pyz.curses_prep import curses
 from pyz import colors
 
 from pyz.windows.news import NEWS
 from pyz.windows import stats_window
+from pyz.windows import quit_window
 from pyz import audio
 from pyz import player
 from pyz import objects
@@ -111,8 +111,7 @@ def key_to_coord(key):
 class GridManager2D(control.Controller):
 
     def __init__(self, controlmanager):
-
-        self.controlmanager = controlmanager
+        control.Controller.__init__(self, controlmanager)
 
         self.MAIN = layers.LayerManager("main", (80,24),
             sublayers=[
@@ -129,6 +128,7 @@ class GridManager2D(control.Controller):
 
         self.spacing = 2
 
+        lantern_coord = (17,9)
         self.x = settings.WIDTH
         self.y = settings.HEIGHT
         self._truex = self.x
@@ -140,6 +140,8 @@ class GridManager2D(control.Controller):
         # make trees
         for _ in range(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
             coord = (random.randint(0, self.x-2), random.randint(0, self.y-2))
+            if coord == lantern_coord:
+                continue
             GRID.nodes[coord].add("tree")
 
         self.visible = set()
@@ -206,7 +208,6 @@ class GridManager2D(control.Controller):
         # self.player.flashlight.toggle()
         # self.player.flashlight = objects.Flashlight(6, 150, self.player) # realistic lantern.
 
-        lantern_coord = (17,9)
         lantern = objects.Lantern(8, None)
         lantern.name = "lantern"
         lantern.size = 20
@@ -336,7 +337,8 @@ class GridManager2D(control.Controller):
                     NEWS.add("[!] Not implemented!")
             else:
                 NEWS.add("You don't have an inventory!") # TODO:  this is incorrect -- e.g. weapons + clothes.
-
+        elif key == 27: # ESC
+            quit_window.QuitWindow(self.controlmanager) # IMPLICITY ADDS
 
         if hasattr(self.player, 'flashlight'):
             _layer = layers.get("gameworld")
@@ -518,7 +520,7 @@ class GridManager2D(control.Controller):
 
         self.render_frame()
         self.render_GUI()
-        render_to(layers.get("main"), stdscr)
+        layers.render_to(layers.get("main"), stdscr)
 
 
     def render_GUI(self):
@@ -582,18 +584,3 @@ class GridManager2D(control.Controller):
 
         return False # we currently never die.
 
-####################################
-
-def render_to(main_layer, stdscr):
-    stdscr.erase()
-
-    for (x, y, (char_or_code, color, _)) in list(main_layer.items()):
-        try:
-            if type(char_or_code) is int:
-                stdscr.addch(y, x, char_or_code, color)
-            else:
-                stdscr.addstr(y, x, char_or_code if not PYTHON2 else char_or_code.encode(CODE), color)
-        except curses.error:
-            break
-
-    stdscr.refresh()

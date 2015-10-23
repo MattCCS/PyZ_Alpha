@@ -1,5 +1,10 @@
+"""
+"""
 
-# project
+# standard
+import traceback
+
+# custom
 from pyz import curses_prep
 from pyz.gamedata import json_parser
 from pyz import controlmanager
@@ -7,8 +12,12 @@ from pyz import controlmanager
 ####################################
 
 def main():
-    json_parser.load_all()
-    curses_prep.curses.wrapper(controlmanager.mainwrapped)
+    try:
+        json_parser.load_all()
+        curses_prep.curses.wrapper(controlmanager.mainwrapped)
+    except Exception as e:
+        with open("BAD3.txt", 'w') as f:
+            f.write(traceback.format_exc())
 
 
 if __name__ == '__main__':

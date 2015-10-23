@@ -17,37 +17,59 @@ class ControlManager(object):
     def __init__(self, stdscr):
         self.stdscr = stdscr
         self.pending_controllers = []
-        self.controllers = [gameworld.GridManager2D(self)]
+        self.dead_controllers = set()
+        self.controllers = []
 
     def add_controller(self, controller):
         self.pending_controllers.append(controller)
 
-    def loop(self):
+    def _interact_with_controller(self, controller, key):
+        dead = controller.interact(key)
+        if dead:
+            self.dead_controllers.add(controller)
+
+    def _loop(self):
         
         while True:
+            # update controller stack
+            self.controllers += self.pending_controllers
+            self.controllers = [c for c in self.controllers if c not in self.dead_controllers]
+            self.pending_controllers = []
+            self.dead_controllers = set()
+
             if not self.controllers:
                 break
 
             # render the controller stack
+            self.stdscr.erase()
             for controller in self.controllers:
                 controller.render(self.stdscr)
 
             # get input safely
             curses_prep.curses.flushinp()
-            try:
-                key = self.stdscr.getch()
-            except KeyboardInterrupt:
-                return # user quit!
+            key = self.stdscr.getch() # don't do anything special for KeyboardInterrupt!
 
-            # guaranteed to exist by earlier line,
-            # and guaranteed to be the topmost controller.
-            dead = controller.interact(key)
-            if dead:
-                self.controllers.pop()
+            # resizes are sent to EVERYONE!
+            # otherwise, rendering suffers.
+            if key == curses_prep.curses.KEY_RESIZE:
+                for controller in self.controllers:
+                    self._interact_with_controller(controller, key)
+            else:
+                # guaranteed to exist by earlier line,
+                # and guaranteed to be the topmost controller.
+                self._interact_with_controller(controller, key)
 
-            # update controller stack
-            self.controllers += self.pending_controllers
-            self.pending_controllers = []
+    def loop(self):
+        """
+        """
+
+        try:
+            self._loop()
+        except KeyboardInterrupt:
+            pass
+        except Exception as e:
+            with open("BAD2.txt", 'w') as f:
+                f.write(traceback.format_exc())
 
 ####################################
 
@@ -71,11 +93,8 @@ def mainwrapped(stdscr):
     # stdscr.refresh()
 
     manager = ControlManager(stdscr)
-    try:
-        manager.loop()
-    except Exception as e:
-        with open("BAD2.txt", 'w') as f:
-            f.write(traceback.format_exc())
+    gameworld.GridManager2D(manager)
+    manager.loop()
 
     audio.stop_all_sounds()
     curses_prep.curses.curs_set(1)

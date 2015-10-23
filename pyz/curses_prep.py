@@ -1,4 +1,6 @@
 
+import os
+os.environ['ESCDELAY'] = '25'
 import curses
 import locale
 locale.setlocale(locale.LC_ALL, "")

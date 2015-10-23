@@ -8,7 +8,7 @@ Author: Matthew Cotton
 from collections import OrderedDict
 
 # custom
-from pyz.curses_prep import curses
+from pyz.curses_prep import curses, CODE
 
 ####################################
 
@@ -23,6 +23,9 @@ DEFAULT_MODE = curses.A_NORMAL
 
 def get(name):
     return LayerManager.get(name)
+
+def delete(name):
+    LayerManager.delete(name)
 
 ####################################
 
@@ -54,6 +57,13 @@ class LayerManager(object):
     @staticmethod
     def get(name):
         return LayerManager.registry[name]
+
+    @staticmethod
+    def delete(name):
+        try:
+            del LayerManager.registry[name]
+        except KeyError:
+            pass
 
     ####################################
     # utilities
@@ -279,3 +289,27 @@ def add_border(layer, charset='curses', chars=None, color=None):
     for oy in range(y-2):
         layer.set(  0, oy+1,  left, color=color)
         layer.set(x-1, oy+1, right, color=color)
+
+####################################
+
+import sys
+PYTHON2 = sys.version_info[0] == 2
+
+####################################
+
+def render_to(main_layer, stdscr, offset_x=0, offset_y=0):
+
+    # stdscr.erase()
+
+    for (x, y, (char_or_code, color, _)) in list(main_layer.items()):
+        try:
+            x = x + offset_x
+            y = y + offset_y
+            if type(char_or_code) is int:
+                stdscr.addch(y, x, char_or_code, color)
+            else:
+                stdscr.addstr(y, x, char_or_code if not PYTHON2 else char_or_code.encode(CODE), color)
+        except curses.error:
+            break
+
+    stdscr.refresh()
