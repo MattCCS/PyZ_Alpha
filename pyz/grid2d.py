@@ -1,12 +1,14 @@
 # encoding: utf-8
 
+"""
+"""
+
+# custom
 from pyz import node
 from pyz import colors
+from pyz import settings
 
 ####################################
-
-X = 80
-Y = 50
 
 BORDER_BLOCK = u'█'
 
@@ -88,4 +90,5 @@ def render_grid(visible, ppos, layer, nodes, spacing=2):
 def lookup(coord):
     return GRID.nodes[coord]
 
-GRID = Grid2D(X,Y)
+GRID = Grid2D(settings.WIDTH, settings.HEIGHT)
+

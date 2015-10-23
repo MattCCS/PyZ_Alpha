@@ -18,8 +18,11 @@ from pyz.vision import shell_tools
 from pyz.vision import utils
 from pyz import layers
 from pyz import containers
+from pyz import control
 
+from pyz import say
 from pyz import grid2d
+from pyz import settings
 from pyz.grid2d import GRID
 
 from pyz.terminal_size import true_terminal_size
@@ -105,9 +108,11 @@ def key_to_coord(key):
 ####################################
 
 
-class GridManager2D(object):
+class GridManager2D(control.Controller):
 
-    def __init__(self, stdscr, x, y):
+    def __init__(self, controlmanager):
+
+        self.controlmanager = controlmanager
 
         self.MAIN = layers.LayerManager("main", (80,24),
             sublayers=[
@@ -120,23 +125,21 @@ class GridManager2D(object):
                 (1, 19, layers.LayerManager("news", (5, 5))),
             ])
 
-        self.stdscr = stdscr
-        self.stdscr.timeout(1000)
         self.stats = stats_window.StatsWindow(layers.get("stats"))
 
         self.spacing = 2
 
-        self.x = x
-        self.y = y
-        self._truex = x
-        self._truey = y
+        self.x = settings.WIDTH
+        self.y = settings.HEIGHT
+        self._truex = self.x
+        self._truey = self.y
 
         for (_, node_obj) in GRID.nodes.items():
             node_obj.set("dirt")
 
         # make trees
         for _ in range(random.randint(BLOCK_CHANCE_MIN, BLOCK_CHANCE_MAX)):
-            coord = (random.randint(0,x-2), random.randint(0,y-2))
+            coord = (random.randint(0, self.x-2), random.randint(0, self.y-2))
             GRID.nodes[coord].add("tree")
 
         self.visible = set()
@@ -213,6 +216,10 @@ class GridManager2D(object):
         self.lightsources = [self.player.flashlight, lantern]
         GRID.nodes[lantern_coord].objects.add(lantern)
         lantern.parent = GRID.nodes[lantern_coord]
+
+        # ACTION!
+        audio.rough_loop("environment/swamp.aif", 100)
+        self.update_viewport(sound=False)
 
     def handle_interaction(self, key):
 
@@ -407,16 +414,6 @@ class GridManager2D(object):
 
         return wait
 
-    def interact(self, key):
-
-        ####################################
-        # TOP visual events pause interaction
-        # since these are to be watched
-        # BOTTOM visual events simply occur
-
-        if not self.visual_events_top:
-            self.handle_interaction(key)
-
     def age(self):
         # age player
         # age enemies
@@ -517,23 +514,11 @@ class GridManager2D(object):
         # if not (self._truex, self._truey) == true_terminal_size():
         #     print '\a'
 
-    def render_cycle(self):
+    def render_cycle(self, stdscr):
 
         self.render_frame()
         self.render_GUI()
-        render_to(layers.get("main"), self.stdscr)
-
-    def render(self):
-        """
-        TICKS visual events!
-        """
-
-        self.render_cycle()
-        while self.has_visual_events():
-
-            time.sleep(self.visual_requested_wait())
-
-            self.render_cycle()
+        render_to(layers.get("main"), stdscr)
 
 
     def render_GUI(self):
@@ -559,51 +544,45 @@ class GridManager2D(object):
             for (y, news) in enumerate(NEWS.latest(3), 1):
                 layers.get("news").setrange(1, y, news, color=colors.fg_bg_to_index("white"))
 
+    ####################################
 
-    def playwrap(self):
+    def render(self, stdscr):
+        """
+        TICKS visual events!
+        """
 
-        layers.set_curses_border()
+        self.render_cycle(stdscr)
+        while self.has_visual_events():
 
-        self.update_viewport(sound=False)
-        self.render()
+            time.sleep(self.visual_requested_wait())
 
-        try:
-            while True:
-                self.stats.inc()
+            self.render_cycle(stdscr)
 
-                # input
-                curses.flushinp()
-                key = self.stdscr.getch()
 
-                if key == -1: # TIMEOUT
-                    pass # render!  update the nodes with multiple objects!
+    def interact(self, key):
 
-                elif key == curses.KEY_RESIZE:
-                    self.update_viewport()
-                    continue
+        ####################################
+        # TOP visual events pause interaction
+        # since these are to be watched
+        # BOTTOM visual events simply occur
 
-                elif not self.window_too_small():
-                    self.interact(key)
-                    self.age()
+        self.stats.inc()
 
-                # render
-                self.render()
+        if key == -1: # TIMEOUT
+            pass # TODO: render!  update the nodes with multiple objects!
 
-        except KeyboardInterrupt:
-            print("User quit.")
+        elif key == curses.KEY_RESIZE:
+            self.update_viewport()
+            return
 
-        print("Quit.")
+        elif not self.window_too_small():
+            if not self.visual_events_top:
+                self.handle_interaction(key)
+            self.age()
 
-    def play(self):
+        return False # we currently never die.
 
-        try:
-            self.playwrap()
-        except Exception as e:
-            import traceback
-            # say(str(e), r=200)
-            with open("BAD.txt", 'w') as f:
-                f.write(traceback.format_exc())
-
+####################################
 
 def render_to(main_layer, stdscr):
     stdscr.erase()
