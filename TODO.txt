@@ -13,3 +13,4 @@
 
 + Craig Tree achievement
 
+- make various actions more difficult/impossible when you can't see (like picking things up)

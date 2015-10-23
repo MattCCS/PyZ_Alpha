@@ -7,7 +7,7 @@ Author: Matthew Cotton
 class NewsWindow(object):
     
     def __init__(self, limit=30):
-        self.news = []
+        self.news = [''] * limit
         self.limit = limit
 
     def add(self, string):

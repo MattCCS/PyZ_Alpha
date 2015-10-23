@@ -51,8 +51,8 @@ BORDER_BLOCK = u'█'
 
 ####################################
 
-BLOCK_CHANCE_MIN = 50
-BLOCK_CHANCE_MAX = 50
+BLOCK_CHANCE_MIN = 100
+BLOCK_CHANCE_MAX = 100
 
 RESERVED_X = 20
 RESERVED_Y = 8
@@ -289,7 +289,10 @@ class GridManager2D(object):
                     NEWS.add("You stand up.")
                 audio.play('movement/changing/nonprone.aif')
         elif key == ord('l'):
-            NEWS.add("You see: {}".format(', '.join(obj.name for obj in GRID.nodes[self.player.position()].objects if obj is not self.player)))
+            if not self.is_visible((x,y)):
+                NEWS.add("It's too dark to see!")
+            else:
+                NEWS.add("You see: {}".format(', '.join(obj.name for obj in GRID.nodes[self.player.position()].objects if obj is not self.player)))
         elif key == ord('p'):
             items = [obj for obj in GRID.nodes[(x,y)].objects if isinstance(obj, objects.Item)]
             n = len(items)
@@ -317,7 +320,7 @@ class GridManager2D(object):
                 items = self.player.container.items
                 if len(items) == 0:
                     NEWS.add("No items to drop.")
-                if len(items) == 1:
+                elif len(items) == 1:
                     item = list(items)[0]
                     self.player.container.remove(item)
                     item.set_parent(GRID.nodes[(x,y)])
