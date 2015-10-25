@@ -66,7 +66,7 @@ def get(fg, bg="black"):
         return out
 
 def coerce_to_rgb(name_or_rgb):
-    if type(name_or_rgb) in (str, unicode):
+    if type(name_or_rgb) is not tuple:
         return NAME_TO_RGB[name_or_rgb]
     else:
         return name_or_rgb
