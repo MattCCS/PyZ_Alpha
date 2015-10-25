@@ -40,10 +40,17 @@ class ControlManager(object):
             if not self.controllers:
                 break
 
-            # render the controller stack
+            lower = self.controllers[:-1]
+            top   = self.controllers[-1]
+            assert top
+
+            ####################################
+            # RENDERING
             self.stdscr.erase()
-            for controller in self.controllers:
+            for controller in lower:
                 controller.render(self.stdscr)
+            # render the TOPMOST controller
+            top.render(self.stdscr)
 
             # get input safely
             curses_prep.curses.flushinp()
@@ -55,9 +62,7 @@ class ControlManager(object):
                 for controller in self.controllers:
                     self._interact_with_controller(controller, key)
             else:
-                # guaranteed to exist by earlier line,
-                # and guaranteed to be the topmost controller.
-                self._interact_with_controller(controller, key)
+                self._interact_with_controller(top, key)
 
     def loop(self):
         """

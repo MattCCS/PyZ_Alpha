@@ -68,3 +68,16 @@ BIG CHANGES
 ~ NOTE:  can only pick up/drop when it's unambiguous -- otherwise, a menu will have to come up.
 - NEED to implement floating menus!
 - NEED to fix dealing with multiple items
+
+
+( 10-25-15 / Dynamic colors, gateway to dimming )
++ v15.4
++ HUGE!!  Colors are now RGB
+    + dynamically decided based on highly optimized function
+    + cached at every step, runs fast once, even faster subsequently
+    ~ this will allow tons of new colors to be created dynamically (e.g. via dimming)
+    ~ this ALSO allows for things like transparency or partial illumination!!! <<<<<<<<<<
++ cleaned up some other code, put things in place to easily implement dimming
+    ~ for forefront windows to be given attention
+- NEED to implement dimming
+- NEED to keep working on inventory (once windows are stable)

@@ -26,8 +26,8 @@ class QuitWindow(control.Controller):
             return False # ignore everything else.
 
     def render(self, stdscr):
-        WHITE = colors.fg_bg_to_index("white")
-        RED = colors.fg_bg_to_index("red")
+        WHITE = colors.get("white")
+        RED   = colors.get("red")
 
         (X,Y) = true_terminal_size() # <---- TODO:  ok?
 

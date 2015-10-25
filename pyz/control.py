@@ -4,6 +4,9 @@
 # standard
 import abc
 
+# TODO:
+# interact --> handle_resize() OR handle_input()
+
 ####################################
 
 class Controller(object):

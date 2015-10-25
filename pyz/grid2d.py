@@ -74,7 +74,7 @@ def render_grid(visible, ppos, layer, nodes, spacing=2):
             (abs_x, abs_y) = xy_to_screen( (x,y), (px,py), w, h, spacing=spacing )
 
             if not (x, y) in nodes:
-                layer.set(abs_x, abs_y, BORDER_BLOCK, color=colors.fg_bg_to_index("white"))
+                layer.set(abs_x, abs_y, BORDER_BLOCK, color=colors.get("white"))
                 # pass
             elif not (x-px, y-py) in visible:
                 # TODO: what does this do?

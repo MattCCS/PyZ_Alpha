@@ -1,3 +1,5 @@
+! BUG:  switching to "focus" mode on flashlight smears illumination -- refresh bug?
+
 - add inventory
     - add containers
 - add crafting
@@ -14,3 +16,6 @@
 + Craig Tree achievement
 
 - make various actions more difficult/impossible when you can't see (like picking things up)
+
+- some sort of 'dimming' to focus on windows
+- can we do that mathematically?  is there a curses.DIM?

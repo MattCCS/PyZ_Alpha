@@ -2,55 +2,71 @@
 This file contains mappings of {color names -> ASSIGNED curses indices}
 """
 
+from pyz import iterm_color_table
 from pyz.curses_prep import curses
 
 ####################################
-# updated dynamically when colors are requested
+# color tables
 
-CURSES_COLORS = {
-    "black"          :   0,
-    "gray"           :   8,
-    "white"          :   15,
+FG_BG_PAIRS = {}
 
-    "dark red"       :   1,
-    "dark green"     :   2,
-    "dark yellow"    :   3,
-    "dark blue"      :   4,
-    "dark magenta"   :   5,
-    "dark teal"      :   6,
-    "dark white"     :   7,
+# must be pre-defined!
+# TODO:  load from JSON?
+NAME_TO_RGB = {
+    "black"          :   (  0,  0,  0),
 
-    "red"            :   9,
-    "green"          :   10,
-    "yellow"         :   11,
-    "blue"           :   12,
-    "magenta"        :   13,
-    "teal"           :   14,
+    "dark red"       :   (128,  0,  0),
+    "dark green"     :   (  0,128,  0),
+    "dark blue"      :   (  0,  0,128),
+    "dark yellow"    :   (128,128,  0),
+    "dark magenta"   :   (128,  0,128),
+    "dark teal"      :   (  0,128,128),
+    "gray"           :   (128,128,128),
 
-    "brown"          :   58,
-    "maroon"         :   88,
+    "dark white"     :   (192,192,192),
+
+    "red"            :   (255,  0,  0),
+    "green"          :   (  0,255,  0),
+    "blue"           :   (  0,  0,255),
+    "yellow"         :   (255,255,  0),
+    "magenta"        :   (255,  0,255),
+    "teal"           :   (  0,255,255),
+    "white"          :   (255,255,255),
+
+    "brown"          :   ( 95,  95, 0),
+    "maroon"         :   (135,  0,  0),
 }
 
-PRESET = {}
-IDX = 2
+PAIR_INDEX = 2
+COLOR_INDEX = 2
+
+FACTOR_255_TO_1000 = 1000.0 / 255.0
 
 ####################################
 
-def lookup(name):
-    """Look up the name value in the color table"""
-    return CURSES_COLORS[name]
+def get(fg, bg="black"):
+    global PAIR_INDEX
 
-def fg_bg_to_index(fg_name, bg_name="black"):
-    """Creates the color pair and returns its index"""
-    global PRESET, IDX
+    fg_rgb = coerce_to_rgb(fg) # allow RGB or name
+    bg_rgb = coerce_to_rgb(bg) # coerce to RGB
 
-    key = (fg_name, bg_name)
-    if key in PRESET:
-        return PRESET[key]
+    key = (fg_rgb, bg_rgb)
+
+    if key in FG_BG_PAIRS:
+        return FG_BG_PAIRS[key]
     else:
-        # LOGGER.debug("new pair: {} -- {}/{} {}/{}".format(IDX, fg_name, CURSES_COLORS[fg_name], bg_name, CURSES_COLORS[bg_name]))
-        curses.init_pair(IDX, CURSES_COLORS[fg_name], CURSES_COLORS[bg_name])
-        out = curses.color_pair(IDX)
-        PRESET[key] = out
-        IDX += 1
+        # create new color pair
+        fg_i = iterm_color_table.lookup(fg_rgb)
+        bg_i = iterm_color_table.lookup(bg_rgb)
+
+        curses.init_pair(PAIR_INDEX, fg_i, bg_i)
+        out = curses.color_pair(PAIR_INDEX)
+        FG_BG_PAIRS[key] = out
+        PAIR_INDEX += 1
         return out
+
+def coerce_to_rgb(name_or_rgb):
+    if type(name_or_rgb) in (str, unicode):
+        return NAME_TO_RGB[name_or_rgb]
+    else:
+        return name_or_rgb

@@ -431,7 +431,7 @@ class GridManager2D(control.Controller):
         if (0,0) in self.visible:
             (fx,fy) = grid2d.xy_to_screen(p, p, *layer.size())
             # say('player set {} {}'.format(fx, fy))
-            layer.set(fx, fy, 'P', color=colors.fg_bg_to_index("yellow"))
+            layer.set(fx, fy, 'P', color=colors.get("yellow"))
 
 
     def window_too_small(self):
@@ -443,7 +443,7 @@ class GridManager2D(control.Controller):
 
         for (y,row) in enumerate(TOO_SMALL_MSG):
             for (x,c) in enumerate(row):
-                MAIN.set(x, y, c, color=colors.fg_bg_to_index("white"))
+                MAIN.set(x, y, c, color=colors.get("white"))
 
 
     def update_viewport(self, sound=True):
@@ -525,26 +525,26 @@ class GridManager2D(control.Controller):
 
     def render_GUI(self):
         if not self.window_too_small():
-            layers.add_border(layers.get("main"), color=colors.fg_bg_to_index("white"))
-            layers.get("main").setrange(0,0, "<main>", color=colors.fg_bg_to_index("white"))
+            layers.add_border(layers.get("main"), color=colors.get("white"))
+            layers.get("main").setrange(0,0, "<main>", color=colors.get("white"))
 
-            layers.get("gameworld").setrange(0, 0, "<gameworld>", color=colors.fg_bg_to_index("white"))
+            layers.get("gameworld").setrange(0, 0, "<gameworld>", color=colors.get("white"))
 
-            layers.add_border(layers.get("gameframe"), color=colors.fg_bg_to_index("white"))
-            layers.get("gameframe").setrange(0, 0, "<gameframe>", color=colors.fg_bg_to_index("white"))
+            layers.add_border(layers.get("gameframe"), color=colors.get("white"))
+            layers.get("gameframe").setrange(0, 0, "<gameframe>", color=colors.get("white"))
 
             self.stats.render()
-            layers.add_border(layers.get("stats"), color=colors.fg_bg_to_index("white"))
-            layers.get("stats").setrange(0, 0, "<stats>", color=colors.fg_bg_to_index("white"))
+            layers.add_border(layers.get("stats"), color=colors.get("white"))
+            layers.get("stats").setrange(0, 0, "<stats>", color=colors.get("white"))
 
-            layers.add_border(layers.get("player"), color=colors.fg_bg_to_index("white"))
-            layers.get("player").setrange(0, 0, "<player>", color=colors.fg_bg_to_index("white"))
-            layers.get("player").setlines(5, 2, BODY, color=colors.fg_bg_to_index("white"))
+            layers.add_border(layers.get("player"), color=colors.get("white"))
+            layers.get("player").setrange(0, 0, "<player>", color=colors.get("white"))
+            layers.get("player").setlines(5, 2, BODY, color=colors.get("white"))
 
-            layers.add_border(layers.get("news"), color=colors.fg_bg_to_index("white"))
-            layers.get("news").setrange(0, 0, "<news>", color=colors.fg_bg_to_index("white"))
+            layers.add_border(layers.get("news"), color=colors.get("white"))
+            layers.get("news").setrange(0, 0, "<news>", color=colors.get("white"))
             for (y, news) in enumerate(NEWS.latest(3), 1):
-                layers.get("news").setrange(1, y, news, color=colors.fg_bg_to_index("white"))
+                layers.get("news").setrange(1, y, news, color=colors.get("white"))
 
     ####################################
 
@@ -557,6 +557,7 @@ class GridManager2D(control.Controller):
         while self.has_visual_events():
 
             time.sleep(self.visual_requested_wait())
+            stdscr.erase() # TODO:  this shouldn't occur here -- technically, this shouldn't loop AT ALL.
 
             self.render_cycle(stdscr)
 

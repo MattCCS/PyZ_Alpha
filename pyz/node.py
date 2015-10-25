@@ -75,9 +75,9 @@ class Node2D(objects.Parentable):
         # gas/smoke stuff
         # ...
 
-        color = colors.fg_bg_to_index(color)
+        color = colors.get(color)
         if self.reverse_video:
-            color = curses.A_REVERSE
+            color = color | curses.A_REVERSE # BITMASK!!!
 
         # actual settings
         layer.set(x, y, char.encode(CODE), color=color)

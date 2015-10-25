@@ -10,7 +10,7 @@ class StatsWindow(object):
 
     def render(self):
         self._layer.reset()
-        self._layer.setrange(0, 1, "gameticks: {}".format(self._gameticks), colors.fg_bg_to_index("white"))
+        self._layer.setrange(0, 1, "gameticks: {}".format(self._gameticks), colors.get("white"))
 
     def inc(self):
         self._gameticks += 1
