@@ -8,7 +8,8 @@ from pyz.curses_prep import curses
 ####################################
 # color tables
 
-FG_BG_PAIRS = {}
+FG_BG_TO_PAIR_INDEX = {}
+PAIR_INDEX_TO_FG_BG = {}
 
 # must be pre-defined!
 # TODO:  load from JSON?
@@ -52,8 +53,8 @@ def get(fg, bg="black"):
 
     key = (fg_rgb, bg_rgb)
 
-    if key in FG_BG_PAIRS:
-        return FG_BG_PAIRS[key]
+    if key in FG_BG_TO_PAIR_INDEX:
+        return FG_BG_TO_PAIR_INDEX[key]
     else:
         # create new color pair
         fg_i = iterm_color_table.lookup(fg_rgb)
@@ -61,7 +62,8 @@ def get(fg, bg="black"):
 
         curses.init_pair(PAIR_INDEX, fg_i, bg_i)
         out = curses.color_pair(PAIR_INDEX)
-        FG_BG_PAIRS[key] = out
+        FG_BG_TO_PAIR_INDEX[key] = out
+        PAIR_INDEX_TO_FG_BG[out] = key
         PAIR_INDEX += 1
         return out
 
@@ -70,3 +72,20 @@ def coerce_to_rgb(name_or_rgb):
         return NAME_TO_RGB[name_or_rgb]
     else:
         return name_or_rgb
+
+####################################
+
+# def log(msg):
+#     with open("BAD4.txt", 'a') as f:
+#         f.write(str(msg) + '\n')
+#         f.flush()
+
+def scale_fg_bg(fg_bg_index, factor):
+    (fg_rgb, bg_rgb) = PAIR_INDEX_TO_FG_BG[fg_bg_index]
+    return get(scale_rgb(fg_rgb, factor), scale_rgb(bg_rgb, factor))
+
+def scale_index(index, factor):
+    return iterm_color_table.lookup(scale_rgb(iterm_color_table.reverse_lookup(index), factor))
+
+def scale_rgb(rgb, factor):
+    return tuple(int(round(n*factor)) for n in rgb)

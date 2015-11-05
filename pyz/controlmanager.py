@@ -46,10 +46,14 @@ class ControlManager(object):
 
             ####################################
             # RENDERING
+            if lower:
+                layers.set_dim(True)
             self.stdscr.erase()
             for controller in lower:
                 controller.render(self.stdscr)
             # render the TOPMOST controller
+            if lower:
+                layers.set_dim(False)
             top.render(self.stdscr)
 
             # get input safely

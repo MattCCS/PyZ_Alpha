@@ -1,8 +1,0 @@
-####################################
-# run this script to begin the project
-####################################
-
-$DIR = (Get-Item -Path ".\" -Verbose).FullName # directory of this script
-cd $DIR
-
-python -B -m pyz.main

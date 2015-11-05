@@ -281,6 +281,8 @@ RGB_TO_INDEX = {}
 RGB_TO_INDEX.update(UNEVEN_RGB_TO_INDEX)
 RGB_TO_INDEX.update(EVEN_RGB_TO_INDEX)
 
+INDEX_TO_RGB = {v:k for k,v in RGB_TO_INDEX.items()} # will not store new values.
+
 ####################################
 # convenient datasets
 
@@ -333,3 +335,6 @@ def closest(RGB):
 def lookup(RGB):
     RGB = closest(RGB)
     return RGB_TO_INDEX[RGB]
+
+def reverse_lookup(index):
+    return INDEX_TO_RGB[index]

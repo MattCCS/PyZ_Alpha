@@ -189,11 +189,11 @@ class GridManager2D(control.Controller):
         x1.appearance = "*"
         x1.color = "red"
 
-        # x2 = objects.Item(_parent)
-        # x2.size = 6
-        # x2.name = 'amulet'
-        # x2.appearance = "@"
-        # x2.color = "blue"
+        x2 = objects.Item(_parent)
+        x2.size = 6
+        x2.name = 'amulet'
+        x2.appearance = "@"
+        x2.color = "blue"
 
         # player and lantern
         self.player = player.Player(GRID.nodes[(15,15)])

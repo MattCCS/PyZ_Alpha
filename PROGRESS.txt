@@ -81,3 +81,14 @@ BIG CHANGES
     ~ for forefront windows to be given attention
 - NEED to implement dimming
 - NEED to keep working on inventory (once windows are stable)
+
+
+( 11-4-15 / Dimming )
++ v0.15.5
++ added dimming
+    + trivial, global application to all sub-windows below front
+- dimming can turn colors to grayscale (and maybe vice versa), if it's closer
+    - might be bad?  consider somehow restricting grayscale and colors to their respective domains
+- NEED to fix top-window flicker (some sort of curses order-of-operations issue?)
+- NEED to keep working on inventory
+

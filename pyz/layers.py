@@ -300,31 +300,31 @@ def set_bitmask(value):
     global FINAL_BITMASK
     FINAL_BITMASK = value
 
-# def set_dim(value):
-#     global DIM
-#     DIM = value
+def set_dim(value):
+    global DIM
+    DIM = value
 
-# DIM = False
+DIM = False
 FINAL_BITMASK = 0
 
 ####################################
 
 def render_to(main_layer, stdscr, offset_x=0, offset_y=0):
-    # global FINAL_BITMASK
-    # global DIM
+    global FINAL_BITMASK
+    global DIM
 
     # stdscr.erase()
 
-    for (x, y, (char_or_code, color, _)) in list(main_layer.items()):
-        # if DIM:
-        #     color = colors.dim(color)
+    for (x, y, (char_or_code, fg_bg, _)) in list(main_layer.items()):
+        if DIM:
+            fg_bg = colors.scale_fg_bg(fg_bg, 0.25)
         try:
             x = x + offset_x
             y = y + offset_y
             if type(char_or_code) is int:
-                stdscr.addch(y, x, char_or_code, color | FINAL_BITMASK)
+                stdscr.addch(y, x, char_or_code, fg_bg | FINAL_BITMASK)
             else:
-                stdscr.addstr(y, x, char_or_code if not PYTHON2 else char_or_code.encode(CODE), color | FINAL_BITMASK)
+                stdscr.addstr(y, x, char_or_code if not PYTHON2 else char_or_code.encode(CODE), fg_bg | FINAL_BITMASK)
         except curses.error:
             break
 

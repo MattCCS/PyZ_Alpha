@@ -313,8 +313,11 @@ def closest(RGB):
         return RGB
     else:
         cu = closest_uneven(RGB)
+        print cu
         ce = closest_even(RGB)
+        print ce
         cg = closest_greyscale(RGB)
+        print cg
         best = min([cu,ce,cg], key=lambda rgb: rgb_wdiff(RGB, rgb))
         assert best in RGB_TO_INDEX
         RGB_TO_INDEX[RGB] = RGB_TO_INDEX[best]
@@ -325,6 +328,9 @@ def closest(RGB):
 def speedtest():
     import time
     from collections import defaultdict
+
+    print closest((95//2,95//2,0))
+    return
 
     D = defaultdict(int)
 
