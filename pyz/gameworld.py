@@ -1,29 +1,33 @@
 # encoding: utf-8
 
+# standard
 import random
-import time
 import sys
+import time
 
-from pyz.curses_prep import curses
-from pyz import colors
-
-from pyz.windows.news import NEWS
-from pyz.windows import stats_window
-from pyz.windows import quit_window
+# custom
 from pyz import audio
-from pyz import player
-from pyz import objects
-from pyz.vision.rays import arctracing
-from pyz.vision import shell_tools
-from pyz.vision import utils
-from pyz import layers
+from pyz import colors
 from pyz import containers
 from pyz import control
-
-from pyz import say
 from pyz import grid2d
+from pyz import layers
+from pyz import objects
+from pyz import player
+from pyz import say
 from pyz import settings
+
 from pyz.grid2d import GRID
+
+from pyz.vision import shell_tools
+from pyz.vision import utils
+from pyz.vision.rays import arctracing
+
+from pyz.windows import stats_window
+from pyz.windows import quit_window
+from pyz.windows.news import NEWS
+
+from pyz.curses_prep import curses
 
 from pyz.terminal_size import true_terminal_size
 
