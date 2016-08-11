@@ -342,7 +342,7 @@ class GridManager2D(control.Controller):
             else:
                 NEWS.add("You don't have an inventory!") # TODO:  this is incorrect -- e.g. weapons + clothes.
         elif key == 27: # ESC
-            quit_window.QuitWindow(self.controlmanager) # IMPLICITY ADDS
+            quit_window.QuitWindow(self.controlmanager) # IMPLICITLY ADDS
 
         if hasattr(self.player, 'flashlight'):
             _layer = layers.get("gameworld")
@@ -528,27 +528,31 @@ class GridManager2D(control.Controller):
 
 
     def render_GUI(self):
-        if not self.window_too_small():
-            layers.add_border(layers.get("main"), color=colors.get("white"))
-            layers.get("main").setrange(0,0, "<main>", color=colors.get("white"))
+        if self.window_too_small():
+            return
 
-            layers.get("gameworld").setrange(0, 0, "<gameworld>", color=colors.get("white"))
+        white = colors.get("white")
 
-            layers.add_border(layers.get("gameframe"), color=colors.get("white"))
-            layers.get("gameframe").setrange(0, 0, "<gameframe>", color=colors.get("white"))
+        layers.add_border(layers.get("main"), color=white)
+        layers.get("main").setrange(0,0, "<main>", color=white)
 
-            self.stats.render()
-            layers.add_border(layers.get("stats"), color=colors.get("white"))
-            layers.get("stats").setrange(0, 0, "<stats>", color=colors.get("white"))
+        layers.get("gameworld").setrange(0, 0, "<gameworld>", color=white)
 
-            layers.add_border(layers.get("player"), color=colors.get("white"))
-            layers.get("player").setrange(0, 0, "<player>", color=colors.get("white"))
-            layers.get("player").setlines(5, 2, BODY, color=colors.get("white"))
+        layers.add_border(layers.get("gameframe"), color=white)
+        layers.get("gameframe").setrange(0, 0, "<gameframe>", color=white)
 
-            layers.add_border(layers.get("news"), color=colors.get("white"))
-            layers.get("news").setrange(0, 0, "<news>", color=colors.get("white"))
-            for (y, news) in enumerate(NEWS.latest(3), 1):
-                layers.get("news").setrange(1, y, news, color=colors.get("white"))
+        self.stats.render()
+        layers.add_border(layers.get("stats"), color=white)
+        layers.get("stats").setrange(0, 0, "<stats>", color=white)
+
+        layers.add_border(layers.get("player"), color=white)
+        layers.get("player").setrange(0, 0, "<player>", color=white)
+        layers.get("player").setlines(5, 2, BODY, color=white)
+
+        layers.add_border(layers.get("news"), color=white)
+        layers.get("news").setrange(0, 0, "<news>", color=white)
+        for (y, news) in enumerate(NEWS.latest(3), 1):
+            layers.get("news").setrange(1, y, news, color=white)
 
     ####################################
 
