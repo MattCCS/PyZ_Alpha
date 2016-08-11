@@ -24,13 +24,14 @@ class Controller(object):
     def interact(self, key):
         """
         Handle the given key code -- can be None!
+        Returns whether this controller is dead.
         """
         pass
 
     @abc.abstractmethod
     def render(self, stdscr):
         """
-        Renders self to the given screen -- as
+        Renders self to the given curses screen -- as
         best as possible -- without erroring.
         """
         pass
