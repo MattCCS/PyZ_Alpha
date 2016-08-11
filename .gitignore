@@ -6,5 +6,8 @@ out.txt
 /BAD.txt
 /BAD2.txt
 trac/
+<<<<<<< HEAD
 
 .DS_Store
+=======
+>>>>>>> db6c5bd... ignoring new Trac directory
